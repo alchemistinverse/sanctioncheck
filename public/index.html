@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SanctionCheck — Free OFAC Screening Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0c10; --surface:#111318; --surface2:#181b22;
+  --border:#1f2330; --border2:#2a2f3f;
+  --accent:#00e5a0; --accent-dim:rgba(0,229,160,0.12); --accent-glow:rgba(0,229,160,0.25);
+  --red:#ff4d4d; --red-dim:rgba(255,77,77,0.12);
+  --amber:#ffb347; --amber-dim:rgba(255,179,71,0.12);
+  --text:#e8eaf2; --text2:#7b8099; --text3:#4a4f65;
+  --mono:'IBM Plex Mono',monospace;
+  --display:'Syne',sans-serif;
+  --body:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;opacity:0.35;pointer-events:none;z-index:0;}
+body::after{content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(0,229,160,0.05) 0%,transparent 70%);pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:0 24px;}
+
+/* Header */
+header{padding:28px 0 0;display:flex;align-items:center;justify-content:space-between;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:32px;height:32px;border:1.5px solid var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:16px;}
+.logo-name{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-0.02em;}
+.logo-name span{color:var(--accent);}
+.header-badge{font-family:var(--mono);font-size:10px;color:var(--accent);background:var(--accent-dim);border:1px solid rgba(0,229,160,0.3);padding:4px 10px;border-radius:20px;letter-spacing:0.08em;text-transform:uppercase;}
+
+/* Hero */
+.hero{padding:64px 0 40px;text-align:center;}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:24px;border:1px solid var(--border2);padding:6px 14px;border-radius:20px;background:var(--surface);}
+.hero-tag::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+h1{font-family:var(--display);font-size:clamp(34px,6vw,60px);font-weight:800;line-height:1.05;letter-spacing:-0.03em;margin-bottom:16px;}
+h1 em{font-style:normal;color:var(--accent);}
+.hero-sub{font-size:15px;color:var(--text2);max-width:480px;margin:0 auto 40px;line-height:1.7;font-weight:300;}
+
+/* Status */
+.data-status{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:32px;}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.status-dot.loading{background:var(--amber);animation:pulse 1.2s infinite;}
+.status-dot.ready{background:var(--accent);}
+.status-dot.error{background:var(--red);}
+.status-text{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:0.06em;}
+
+/* Search card */
+.search-card{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:32px;position:relative;overflow:hidden;}
+.search-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.6;}
+.search-label{font-family:var(--mono);font-size:11px;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;display:block;}
+.search-row{display:flex;gap:12px;margin-bottom:16px;}
+.search-input{flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:14px 18px;font-family:var(--body);font-size:16px;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.search-input::placeholder{color:var(--text3);}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+.search-input:disabled{opacity:0.4;cursor:not-allowed;}
+.search-btn{background:var(--accent);color:#000;border:none;border-radius:10px;padding:14px 28px;font-family:var(--display);font-size:14px;font-weight:700;cursor:pointer;transition:opacity 0.15s,transform 0.15s;white-space:nowrap;}
+.search-btn:hover:not(:disabled){opacity:0.88;transform:translateY(-1px);}
+.search-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.search-options{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
+.opt-label{font-family:var(--mono);font-size:11px;color:var(--text2);letter-spacing:0.06em;margin-right:4px;}
+.opt-btn{background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:5px 12px;font-family:var(--mono);font-size:11px;color:var(--text2);cursor:pointer;transition:all 0.15s;}
+.opt-btn:hover{border-color:var(--accent);color:var(--accent);}
+.opt-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.quick-examples{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-top:14px;border-top:1px solid var(--border);}
+.qe-label{font-family:var(--mono);font-size:11px;color:var(--text3);}
+.qe-btn{background:transparent;border:1px dashed var(--border2);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:11px;color:var(--text3);cursor:pointer;transition:all 0.15s;}
+.qe-btn:hover{border-color:var(--accent);color:var(--accent);border-style:solid;}
+
+/* Results */
+#results{margin-top:28px;}
+.result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.result-title{font-family:var(--mono);font-size:11px;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;}
+.result-meta{font-family:var(--mono);font-size:11px;color:var(--text3);}
+.summary-banner{border-radius:12px;padding:18px 22px;margin-bottom:16px;border:1px solid;display:flex;align-items:center;gap:16px;}
+.summary-banner.clear  {background:var(--accent-dim);border-color:rgba(0,229,160,0.3);}
+.summary-banner.hit    {background:var(--red-dim);   border-color:rgba(255,77,77,0.3);}
+.summary-banner.partial{background:var(--amber-dim); border-color:rgba(255,179,71,0.3);}
+.banner-icon{font-size:26px;flex-shrink:0;line-height:1;}
+.banner-title{font-family:var(--display);font-size:17px;font-weight:700;margin-bottom:3px;}
+.summary-banner.clear   .banner-title{color:var(--accent);}
+.summary-banner.hit     .banner-title{color:var(--red);}
+.summary-banner.partial .banner-title{color:var(--amber);}
+.banner-desc{font-size:13px;color:var(--text2);line-height:1.5;}
+
+/* Match cards */
+.match-card{background:var(--surface);border:1px solid var(--border2);border-radius:12px;margin-bottom:10px;overflow:hidden;}
+.mch{padding:14px 18px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background 0.15s;}
+.mch:hover{background:var(--surface2);}
+.match-name{font-family:var(--display);font-size:15px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.badge{font-family:var(--mono);font-size:10px;padding:3px 7px;border-radius:4px;letter-spacing:0.05em;text-transform:uppercase;flex-shrink:0;border:1px solid;}
+.t-person      {background:rgba(120,100,255,0.15);color:#a89eff;border-color:rgba(120,100,255,0.3);}
+.t-organization{background:rgba(0,160,255,0.12); color:#5ab4ff;border-color:rgba(0,160,255,0.3);}
+.t-vessel      {background:rgba(255,179,71,0.12); color:var(--amber);border-color:rgba(255,179,71,0.3);}
+.t-airplane    {background:rgba(0,229,160,0.12);  color:var(--accent);border-color:rgba(0,229,160,0.3);}
+.t-other       {background:rgba(150,150,150,0.1); color:var(--text2);border-color:var(--border2);}
+.score-pill{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid;flex-shrink:0;}
+.s-high{color:var(--red);  border-color:rgba(255,77,77,0.4);  background:var(--red-dim);}
+.s-med {color:var(--amber);border-color:rgba(255,179,71,0.4); background:var(--amber-dim);}
+.s-low {color:var(--text2);border-color:var(--border2);       background:var(--surface2);}
+.arrow{color:var(--text3);font-size:11px;transition:transform 0.2s;flex-shrink:0;}
+.arrow.open{transform:rotate(180deg);}
+.mbody{display:none;padding:0 18px 18px;border-top:1px solid var(--border);}
+.mbody.open{display:block;}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:14px;}
+.dk{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px;}
+.dv{font-size:13px;color:var(--text);line-height:1.5;}
+.tag-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.atag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);}
+.ptag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:4px;background:var(--red-dim);border:1px solid rgba(255,77,77,0.2);color:var(--red);}
+
+/* Spinner */
+.loading{text-align:center;padding:48px 0;}
+.spinner{width:28px;height:28px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-family:var(--mono);font-size:12px;color:var(--text3);letter-spacing:0.06em;}
+.error-box{background:var(--red-dim);border:1px solid rgba(255,77,77,0.3);border-radius:10px;padding:14px 18px;font-family:var(--mono);font-size:12px;color:var(--red);line-height:1.7;}
+
+/* Stats strip */
+.stats-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:40px;}
+.stat-cell{background:var(--surface);padding:18px 20px;text-align:center;}
+.stat-num{font-family:var(--display);font-size:26px;font-weight:800;color:var(--accent);letter-spacing:-0.02em;margin-bottom:3px;}
+.stat-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;}
+
+/* Footer */
+footer{margin-top:56px;padding:28px 0 40px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.footer-note{font-family:var(--mono);font-size:11px;color:var(--text3);line-height:1.7;max-width:460px;}
+.footer-note strong{color:var(--text2);}
+.audit-row{font-family:var(--mono);font-size:11px;color:var(--text3);text-align:right;}
+
+@media(max-width:600px){
+  .search-row{flex-direction:column;}
+  .stats-strip{grid-template-columns:1fr;}
+  footer{flex-direction:column;}
+  .audit-row{text-align:left;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">◈</div>
+      <span class="logo-name">Sanction<span>Check</span></span>
+    </div>
+    <span class="header-badge">Free · No sign-up needed</span>
+  </header>
+
+  <section class="hero">
+    <div class="hero-tag">Powered by US Treasury OFAC data</div>
+    <h1>Instant <em>sanctions</em><br>screening tool</h1>
+    <p class="hero-sub">Screen individuals, companies, and vessels against the official US OFAC SDN list. Free, no sign-up, no API key required.</p>
+    <div class="data-status">
+      <div class="status-dot loading" id="statusDot"></div>
+      <span class="status-text" id="statusText">Loading OFAC SDN data…</span>
+    </div>
+  </section>
+
+  <div class="search-card">
+    <span class="search-label">Screen an entity</span>
+    <div class="search-row">
+      <input type="text" id="searchInput" class="search-input"
+             placeholder="Enter full name, company, vessel…"
+             autocomplete="off" disabled/>
+      <button class="search-btn" id="searchBtn" onclick="runSearch()" disabled>Screen →</button>
+    </div>
+    <div class="search-options">
+      <span class="opt-label">Type:</span>
+      <button class="opt-btn active" data-type="all"         onclick="setType(this)">All types</button>
+      <button class="opt-btn"        data-type="Person"      onclick="setType(this)">Individual</button>
+      <button class="opt-btn"        data-type="Organization"onclick="setType(this)">Entity</button>
+      <button class="opt-btn"        data-type="Vessel"      onclick="setType(this)">Vessel</button>
+    </div>
+    <div class="quick-examples">
+      <span class="qe-label">Try:</span>
+      <button class="qe-btn" onclick="tryExample('Nicolas Maduro')">Nicolas Maduro</button>
+      <button class="qe-btn" onclick="tryExample('Al-Rashid Bank')">Al-Rashid Bank</button>
+      <button class="qe-btn" onclick="tryExample('Kim Jong Un')">Kim Jong Un</button>
+      <button class="qe-btn" onclick="tryExample('John Smith')">John Smith (clean)</button>
+    </div>
+  </div>
+
+  <div id="results"></div>
+
+  <div class="stats-strip">
+    <div class="stat-cell">
+      <div class="stat-num" id="statCount">—</div>
+      <div class="stat-label">SDN targets loaded</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">Daily</div>
+      <div class="stat-label">Data refresh</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-num">Fuzzy</div>
+      <div class="stat-label">Name matching</div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-note">
+      <strong>Data source:</strong> US Treasury OFAC SDN list, updated daily.<br>
+      <strong>Disclaimer:</strong> This tool is a screening aid only. Always verify hits with a qualified compliance professional before taking action.
+    </div>
+    <div class="audit-row">
+      <div id="timestamp">—</div>
+      <div style="margin-top:4px">Source: treasury.gov</div>
+      <div style="margin-top:4px">© 2026 SanctionCheck</div>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────
+let sdnData = []
+let selectedType = 'all'
+
+// ── Load data ──────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', loadData)
+
+async function loadData() {
+  setStatus('loading', 'Loading OFAC SDN data…')
+  try {
+    const res = await fetch('/sdn.json')
+    if (!res.ok) throw new Error('HTTP ' + res.status)
+    const data = await res.json()
+    sdnData = data.records || []
+    const count = sdnData.length.toLocaleString()
+    setStatus('ready', count + ' SDN targets loaded · Updated daily from treasury.gov')
+    document.getElementById('statCount').textContent = count
+    document.getElementById('searchInput').disabled = false
+    document.getElementById('searchBtn').disabled   = false
+    document.getElementById('searchInput').focus()
+  } catch(e) {
+    setStatus('error', 'Failed to load data: ' + e.message)
+  }
+}
+
+function setStatus(state, text) {
+  document.getElementById('statusDot').className = 'status-dot ' + state
+  document.getElementById('statusText').textContent = text
+}
+
+// ── UI helpers ─────────────────────────────────────────────────────────
+function setType(btn) {
+  document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'))
+  btn.classList.add('active')
+  selectedType = btn.dataset.type
+}
+
+function tryExample(name) {
+  document.getElementById('searchInput').value = name
+  runSearch()
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter') runSearch()
+  })
+})
+
+// ── Fuzzy matching ─────────────────────────────────────────────────────
+function norm(s) {
+  return (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
+function levenshtein(a, b) {
+  const m = a.length, n = b.length
+  const dp = Array.from({length: m+1}, (_, i) =>
+    Array.from({length: n+1}, (_, j) => i === 0 ? j : j === 0 ? i : 0))
+  for (let i = 1; i <= m; i++)
+    for (let j = 1; j <= n; j++)
+      dp[i][j] = a[i-1] === b[j-1]
+        ? dp[i-1][j-1]
+        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
+  return dp[m][n]
+}
+
+function similarity(a, b) {
+  a = a.trim(); b = b.trim()
+  if (!a && !b) return 100
+  if (!a || !b) return 0
+  return Math.round((1 - levenshtein(a, b) / Math.max(a.length, b.length)) * 100)
+}
+
+function tokenSetScore(a, b) {
+  const ta = new Set(norm(a).split(' ').filter(Boolean))
+  const tb = new Set(norm(b).split(' ').filter(Boolean))
+  if (!ta.size || !tb.size) return 0
+  const inter = new Set([...ta].filter(t => tb.has(t)))
+  const si  = [...inter].sort().join(' ')
+  const la  = [...ta].filter(t => !inter.has(t)).sort().join(' ')
+  const lb  = [...tb].filter(t => !inter.has(t)).sort().join(' ')
+  return Math.max(
+    similarity(si, si + ' ' + la),
+    similarity(si, si + ' ' + lb),
+    similarity(si + ' ' + la, si + ' ' + lb)
+  )
+}
+
+function bestAliasScore(query, aliases) {
+  if (!aliases || !aliases.length) return 0
+  return aliases.reduce((best, alias) => {
+    const s = tokenSetScore(query, alias)
+    return s > best ? s : best
+  }, 0)
+}
+
+function search(query) {
+  if (!query || !sdnData.length) return []
+  const results = []
+  for (const row of sdnData) {
+    const rowType = (row.type || '').toLowerCase()
+    if (selectedType !== 'all' && rowType !== selectedType.toLowerCase()) continue
+    const nameScore  = tokenSetScore(query, row.name)
+    const aliasScore = bestAliasScore(query, row.aliases)
+    const score = Math.max(nameScore, aliasScore)
+    if (score >= 60) {
+      results.push({ score, row, matchedOn: aliasScore > nameScore ? 'alias' : 'name' })
+    }
+  }
+  return results.sort((a, b) => b.score - a.score).slice(0, 10)
+}
+
+// ── Run search ─────────────────────────────────────────────────────────
+function runSearch() {
+  const query = document.getElementById('searchInput').value.trim()
+  if (!query) return
+  if (!sdnData.length) { showError('Data still loading. Please wait.'); return }
+
+  document.getElementById('results').innerHTML = `
+    <div class="loading">
+      <div class="spinner"></div>
+      <div class="loading-text">Scanning ${sdnData.length.toLocaleString()} SDN records…</div>
+    </div>`
+
+  setTimeout(() => {
+    const hits = search(query)
+    renderResults(hits, query)
+    const now = new Date()
+    document.getElementById('timestamp').textContent =
+      'Screened: ' + now.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) +
+      ' ' + now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})
+  }, 30)
+}
+
+// ── Render results ─────────────────────────────────────────────────────
+function renderResults(hits, query) {
+  const strongHits = hits.filter(h => h.score >= 85)
+  const hasHits    = hits.length > 0
+  const isHit      = strongHits.length > 0
+
+  let bc, bi, bt, bd
+  if (!hasHits) {
+    bc='clear'; bi='✓'
+    bt='No sanctions match found'
+    bd=`"${query}" returned no results in the OFAC SDN database. Record appears clear.`
+  } else if (isHit) {
+    bc='hit'; bi='⚑'
+    bt=`${strongHits.length} high-confidence match${strongHits.length>1?'es':''} found`
+    bd='Immediate review required. Do not proceed without compliance officer verification.'
+  } else {
+    bc='partial'; bi='◉'
+    bt=`${hits.length} potential match${hits.length>1?'es':''} — review recommended`
+    bd='Low-confidence matches found. Further due diligence recommended.'
+  }
+
+  let cards = ''
+  hits.forEach((h, i) => {
+    const r    = h.row
+    const score= h.score
+    const name = r.name || query
+    const type = (r.type || 'other').toLowerCase()
+    const sc   = score >= 85 ? 's-high' : score >= 70 ? 's-med' : 's-low'
+    const slb  = score >= 85 ? '● High'  : score >= 70 ? '◐ Med'  : '○ Low'
+    const tc   = ['person','organization','vessel','airplane'].includes(type) ? 't-'+type : 't-other'
+    const tl   = type.charAt(0).toUpperCase() + type.slice(1)
+    const aliasArr   = (r.aliases   || []).slice(0,12)
+    const programArr = (r.programs  || []).slice(0,8)
+    const countryArr = (r.countries || []).slice(0,5)
+
+    cards += `
+      <div class="match-card">
+        <div class="mch" onclick="tog(${i})">
+          <div class="match-name">${name}</div>
+          <span class="badge ${tc}">${tl}</span>
+          <span class="score-pill ${sc}">${slb} ${score}%</span>
+          <span class="arrow" id="ea${i}">▾</span>
+        </div>
+        <div class="mbody" id="mb${i}">
+          <div class="dgrid">
+            ${r.id        ? `<div><div class="dk">SDN ID</div><div class="dv" style="font-family:var(--mono);font-size:11px">${r.id}</div></div>` : ''}
+            ${r.dob       ? `<div><div class="dk">Date of birth</div><div class="dv">${r.dob}</div></div>` : ''}
+            ${countryArr.length ? `<div><div class="dk">Countries</div><div class="dv">${countryArr.join(', ')}</div></div>` : ''}
+            <div><div class="dk">Match score</div><div class="dv" style="font-family:var(--mono)">${score}%</div></div>
+            <div><div class="dk">Matched on</div><div class="dv">${h.matchedOn}</div></div>
+          </div>
+          ${aliasArr.length ? `
+            <div style="margin-top:12px">
+              <div class="dk">Aliases / AKAs</div>
+              <div class="tag-row">${aliasArr.map(a=>`<span class="atag">${a}</span>`).join('')}</div>
+            </div>` : ''}
+          ${programArr.length ? `
+            <div style="margin-top:10px">
+              <div class="dk">Programs / topics</div>
+              <div class="tag-row">${programArr.map(p=>`<span class="ptag">${p}</span>`).join('')}</div>
+            </div>` : ''}
+        </div>
+      </div>`
+  })
+
+  document.getElementById('results').innerHTML = `
+    <div class="result-header">
+      <span class="result-title">Screening results</span>
+      <span class="result-meta">${hits.length} match${hits.length!==1?'es':''} · "${query}"</span>
+    </div>
+    <div class="summary-banner ${bc}">
+      <div class="banner-icon">${bi}</div>
+      <div>
+        <div class="banner-title">${bt}</div>
+        <div class="banner-desc">${bd}</div>
+      </div>
+    </div>
+    ${cards}
+    ${!hasHits ? `<div style="text-align:center;padding:36px 0;color:var(--text3);font-family:var(--mono);font-size:12px">◎ No records found in OFAC SDN database</div>` : ''}`
+}
+
+function tog(i) {
+  document.getElementById('mb'+i).classList.toggle('open')
+  document.getElementById('ea'+i).classList.toggle('open')
+}
+
+function showError(msg) {
+  document.getElementById('results').innerHTML = `<div class="error-box">⚠ ${msg}</div>`
+}
+</script>
+</body>
+</html>
