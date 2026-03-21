@@ -660,11 +660,36 @@ function runSearch(){
   const t0=performance.now()
   setTimeout(()=>{
     const results=[]
-    for(const row of sdnData){
-      if(selectedType!=='all'&&selectedType!=='Crypto'){
-        const rt=(row.type||'').toLowerCase()
-        if(rt!==selectedType.toLowerCase())continue
-      }
+    const qTokens=new Set(normalizeInput(query).split(/\s+/).filter(b=>b.length>2))
+
+for(const row of sdnData){
+  if(selectedType!=='all'&&selectedType!=='Crypto'){
+    const rt=(row.type||'').toLowerCase()
+    if(rt!==selectedType.toLowerCase())continue
+  }
+  if(filterCountry&&!(row.countries||[]).some(c=>c.toUpperCase()===filterCountry))continue
+
+  // Quick pre-filter: skip if zero token overlap
+  const rTokens=normalizeInput(row.name).split(/\s+/).filter(b=>b.length>2)
+  const hasOverlap=rTokens.some(t=>{
+    // Check exact or near match against query tokens
+    for(const qt of qTokens){
+      if(t===qt)return true
+      if(t.length>3&&qt.length>3&&(t.startsWith(qt.slice(0,4))||qt.startsWith(t.slice(0,4))))return true
+    }
+    return false
+  })
+
+  // Also check aliases for overlap
+  const aliasOverlap=(row.aliases||[]).some(alias=>
+    normalizeInput(alias).split(/\s+/).some(t=>qTokens.has(t))
+  )
+
+  if(!hasOverlap&&!aliasOverlap)continue
+
+  const match=matchEntity(input,row)
+  if(match.score>=minScore)results.push({...match,row})
+}
       if(filterCountry&&!(row.countries||[]).some(c=>c.toUpperCase()===filterCountry))continue
 
       const match=matchEntity(input,row)
