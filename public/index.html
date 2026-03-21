@@ -6,38 +6,25 @@
 <title>SanctionCheck — Screening Tool</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ── Reset & Variables ─────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#f4f5f7;
-  --surface:#ffffff;
-  --surface2:#f0f1f3;
-  --border:#e2e4e9;
-  --border2:#c8cad0;
+  --bg:#f4f5f7;--surface:#ffffff;--surface2:#f0f1f3;
+  --border:#e2e4e9;--border2:#c8cad0;
   --nav:#1a1a2e;
-  --nav2:#16213e;
-  --primary:#7c3aed;
-  --primary-light:#ede9fe;
-  --primary-mid:#ddd6fe;
-  --text:#111827;
-  --text2:#4b5563;
-  --text3:#9ca3af;
+  --primary:#7c3aed;--primary-light:#ede9fe;--primary-mid:#ddd6fe;
+  --text:#111827;--text2:#4b5563;--text3:#9ca3af;
   --red:#dc2626;--red-bg:#fef2f2;--red-border:#fecaca;
   --amber:#d97706;--amber-bg:#fffbeb;--amber-border:#fde68a;
   --green:#059669;--green-bg:#ecfdf5;--green-border:#a7f3d0;
   --blue:#2563eb;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
-  --mono:'Courier New',monospace;
-  --body:'Inter',sans-serif;
-  --radius:8px;
-  --radius-lg:12px;
+  --mono:'Courier New',monospace;--body:'Inter',sans-serif;
+  --radius:8px;--radius-lg:12px;
 }
 body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;font-size:14px;}
-
-/* ── Nav ────────────────────────────────────────────────────────── */
-nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;}
 .nav-logo{display:flex;align-items:center;gap:8px;}
 .nav-logo-icon{width:26px;height:26px;border:1.5px solid #7c3aed;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#a78bfa;font-size:13px;}
-.nav-brand{font-weight:600;font-size:15px;color:#fff;letter-spacing:-0.01em;}
+.nav-brand{font-weight:600;font-size:15px;color:#fff;}
 .nav-brand span{color:#a78bfa;}
 .nav-right{display:flex;align-items:center;gap:8px;}
 .nav-pill{font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;font-family:var(--body);transition:all 0.15s;}
@@ -52,22 +39,14 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
 .nav-dot.error{background:#ef4444;}
 .nav-status-text{font-size:11px;color:#9ca3af;font-family:var(--mono);}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-
-/* ── App layout ─────────────────────────────────────────────────── */
 .app{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 52px);}
-
-/* ── Left panel ─────────────────────────────────────────────────── */
 .left-panel{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
 .left-inner{padding:16px;flex:1;}
-
-/* Type selector */
 .type-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
 .type-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:16px;}
 .type-btn{padding:7px 4px;border:1px solid var(--border2);border-radius:6px;font-size:11px;font-weight:500;color:var(--text2);background:var(--bg);cursor:pointer;text-align:center;transition:all 0.15s;line-height:1.2;}
 .type-btn:hover{border-color:var(--primary);color:var(--primary);}
 .type-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
-
-/* Search fields */
 .field-group{margin-bottom:12px;}
 .field-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;display:block;}
 .field-input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 12px;font-family:var(--body);font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
@@ -75,34 +54,23 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
 .field-input:disabled{opacity:0.4;cursor:not-allowed;}
 .field-input::placeholder{color:var(--text3);}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-
-/* Score slider */
 .score-row{display:flex;align-items:center;gap:8px;}
 .score-slider{flex:1;accent-color:var(--primary);}
 .score-display{font-size:12px;font-weight:600;color:var(--primary);font-family:var(--mono);min-width:32px;text-align:right;}
-
-/* Advanced toggle */
 .adv-toggle{display:flex;align-items:center;gap:6px;padding:8px 0;cursor:pointer;font-size:12px;font-weight:500;color:var(--primary);user-select:none;border:none;background:none;width:100%;margin-bottom:4px;}
-.adv-toggle .adv-arrow{font-size:10px;transition:transform 0.2s;margin-left:auto;}
-.adv-toggle .adv-arrow.open{transform:rotate(180deg);}
+.adv-arrow{font-size:10px;transition:transform 0.2s;margin-left:auto;}
+.adv-arrow.open{transform:rotate(180deg);}
 .adv-fields{display:none;}
 .adv-fields.open{display:block;}
-.adv-divider{height:1px;background:var(--border);margin:12px 0;}
-
-/* Search button */
 .search-btn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);padding:10px;font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s;margin-top:4px;}
 .search-btn:hover:not(:disabled){background:#6d28d9;}
 .search-btn:disabled{opacity:0.4;cursor:not-allowed;}
 .clear-btn{width:100%;background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--radius);padding:8px;font-family:var(--body);font-size:12px;cursor:pointer;transition:all 0.15s;margin-top:6px;}
 .clear-btn:hover{background:var(--bg);color:var(--text2);}
-
-/* Filter chips */
 .chips-area{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;min-height:4px;}
 .chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary-mid);}
 .chip-x{cursor:pointer;font-size:13px;line-height:1;opacity:0.7;}
 .chip-x:hover{opacity:1;}
-
-/* Search history */
 .history-section{border-top:1px solid var(--border);padding:12px 16px;}
 .history-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
 .history-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background 0.12s;}
@@ -111,34 +79,22 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
 .history-text{font-size:12px;color:var(--text2);flex:1;}
 .history-type{font-size:10px;color:var(--text3);font-family:var(--mono);}
 .history-empty{font-size:12px;color:var(--text3);font-style:italic;padding:4px 0;}
-
-/* ── Right panel ─────────────────────────────────────────────────── */
 .right-panel{display:flex;flex-direction:column;overflow-y:auto;}
-
-/* Context bar */
 .context-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;min-height:44px;}
 .ctx-item{display:flex;align-items:center;gap:5px;font-size:11px;}
 .ctx-label{color:var(--text3);font-weight:500;}
 .ctx-value{color:var(--text);font-weight:600;font-family:var(--mono);}
 .ctx-divider{width:1px;height:14px;background:var(--border);flex-shrink:0;}
 .ctx-empty{font-size:12px;color:var(--text3);font-style:italic;}
-
-/* Results area */
 .results-area{padding:16px 20px;flex:1;}
-
-/* Empty state */
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;text-align:center;color:var(--text3);}
-.empty-icon{font-size:40px;margin-bottom:12px;opacity:0.4;}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:0.3;}
 .empty-title{font-size:16px;font-weight:500;color:var(--text2);margin-bottom:6px;}
 .empty-sub{font-size:13px;color:var(--text3);}
-
-/* Loading */
 .loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;}
 .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{font-size:12px;color:var(--text3);font-family:var(--mono);}
-
-/* Summary banner */
 .summary-banner{border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;border:1px solid;display:flex;align-items:flex-start;gap:10px;}
 .summary-banner.hit    {background:var(--red-bg);   border-color:var(--red-border);}
 .summary-banner.partial{background:var(--amber-bg); border-color:var(--amber-border);}
@@ -149,8 +105,6 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
 .summary-banner.partial .banner-title{color:var(--amber);}
 .summary-banner.clear   .banner-title{color:var(--green);}
 .banner-desc{font-size:12px;color:var(--text2);line-height:1.5;}
-
-/* Result groups */
 .result-group{margin-bottom:20px;}
 .group-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid;}
 .group-header.high  {border-color:var(--red);}
@@ -164,8 +118,6 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
 .group-header.high   .group-count{background:var(--red-bg);color:var(--red);}
 .group-header.medium .group-count{background:var(--amber-bg);color:var(--amber);}
 .group-header.low    .group-count{background:var(--surface2);color:var(--text3);}
-
-/* Result card */
 .result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:8px;overflow:hidden;transition:box-shadow 0.15s;}
 .result-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.08);}
 .result-card.flagged{border-color:var(--amber-border);background:var(--amber-bg);}
@@ -184,11 +136,9 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
 .t-vessel      {background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border);}
 .t-airplane    {background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
 .t-other       {background:var(--surface2);color:var(--text3);border-color:var(--border);}
-
-/* Confidence bar */
 .conf-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .conf-bar-wrap{flex:1;background:var(--surface2);border-radius:4px;height:6px;overflow:hidden;}
-.conf-bar-fill{height:100%;border-radius:4px;transition:width 0.4s ease;}
+.conf-bar-fill{height:100%;border-radius:4px;}
 .conf-bar-fill.high  {background:var(--red);}
 .conf-bar-fill.medium{background:var(--amber);}
 .conf-bar-fill.low   {background:var(--border2);}
@@ -196,27 +146,21 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
 .conf-score.high  {color:var(--red);}
 .conf-score.medium{color:var(--amber);}
 .conf-score.low   {color:var(--text3);}
-
-/* Card meta */
 .card-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
 .meta-item{display:flex;align-items:center;gap:4px;font-size:11px;}
 .meta-label{color:var(--text3);font-weight:500;}
 .meta-value{color:var(--text2);font-weight:500;}
-
-/* Card actions */
-.card-actions{display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--border);}
+.card-actions{display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap;}
 .action-btn{font-size:11px;padding:5px 10px;border-radius:5px;cursor:pointer;font-family:var(--body);font-weight:500;transition:all 0.15s;border:1px solid;}
 .action-btn.detail{background:transparent;color:var(--primary);border-color:rgba(124,58,237,0.3);}
 .action-btn.detail:hover{background:var(--primary-light);}
 .action-btn.fp{background:transparent;color:var(--amber);border-color:var(--amber-border);}
 .action-btn.fp:hover{background:var(--amber-bg);}
 .action-btn.fp.active{background:var(--amber-bg);color:var(--amber);font-weight:600;}
-.action-btn.case{background:transparent;color:var(--green);border-color:var(--green-border);}
-.action-btn.case:hover{background:var(--green-bg);}
-.case-id-display{font-size:10px;color:var(--green);font-family:var(--mono);padding:5px 8px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:5px;display:none;}
-.case-id-display.show{display:flex;align-items:center;gap:4px;}
-
-/* Explain section */
+.action-btn.case-btn{background:transparent;color:var(--green);border-color:var(--green-border);}
+.action-btn.case-btn:hover{background:var(--green-bg);}
+.case-id-display{font-size:10px;color:var(--green);font-family:var(--mono);padding:5px 8px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:5px;display:none;align-items:center;gap:4px;}
+.case-id-display.show{display:flex;}
 .explain-section{display:none;padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);}
 .explain-section.open{display:block;}
 .explain-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
@@ -224,22 +168,22 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
 .explain-stat{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;text-align:center;}
 .explain-stat-num{font-size:16px;font-weight:600;font-family:var(--mono);color:var(--primary);}
 .explain-stat-label{font-size:10px;color:var(--text3);margin-top:2px;}
-.reasons-list{display:flex;flex-wrap:wrap;gap:4px;}
+.reasons-list{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;}
 .reason-chip{font-size:11px;padding:3px 8px;border-radius:4px;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary-mid);}
 .reason-chip.negative{background:var(--red-bg);color:var(--red);border-color:var(--red-border);}
-
-/* Aliases & Programs */
 .tags-section{margin-top:8px;}
 .tags-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;}
 .tags-row{display:flex;flex-wrap:wrap;gap:4px;}
 .alias-tag{font-size:10px;padding:2px 6px;border-radius:3px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-family:var(--mono);}
 .prog-tag{font-size:10px;padding:2px 6px;border-radius:3px;background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);font-family:var(--mono);}
-
-/* Country lookup */
+@media(max-width:768px){
+  .app{grid-template-columns:1fr;}
+  .left-panel{border-right:none;border-bottom:1px solid var(--border);}
+  .nav-pill.outline{display:none;}
+}
 </style>
 </head>
 <body>
-
 <nav>
   <div class="nav-logo">
     <div class="nav-logo-icon">◈</div>
@@ -256,12 +200,8 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
 </nav>
 
 <div class="app">
-
-  <!-- LEFT PANEL -->
   <div class="left-panel">
     <div class="left-inner">
-
-      <!-- Type selector -->
       <div class="type-label">Search by type</div>
       <div class="type-grid">
         <button class="type-btn active" data-type="all"          onclick="setType(this)">All</button>
@@ -271,12 +211,8 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
         <button class="type-btn"        data-type="Airplane"     onclick="setType(this)">Aircraft</button>
         <button class="type-btn"        data-type="Crypto"       onclick="setType(this)">Crypto</button>
       </div>
-
-      <!-- Dynamic fields -->
       <div id="dynamicFields"></div>
-
-      <!-- Min score -->
-      <div class="field-group" id="scoreGroup">
+      <div class="field-group">
         <label class="field-label">Minimum match score</label>
         <div class="score-row">
           <input type="range" class="score-slider" id="minScore" min="50" max="100" value="65" step="1"
@@ -284,32 +220,20 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
           <span class="score-display" id="scoreVal">65%</span>
         </div>
       </div>
-
-      <!-- Active filter chips -->
       <div class="chips-area" id="chipsArea"></div>
-
-      <!-- Buttons -->
       <button class="search-btn" id="searchBtn" onclick="runSearch()" disabled>Search</button>
       <button class="clear-btn" onclick="clearAll()">Clear all</button>
-
     </div>
-
-    <!-- Search history -->
     <div class="history-section">
       <div class="history-label">Recent searches</div>
       <div id="historyList"><div class="history-empty">No recent searches</div></div>
     </div>
   </div>
 
-  <!-- RIGHT PANEL -->
   <div class="right-panel">
-
-    <!-- Context bar -->
     <div class="context-bar" id="contextBar">
       <span class="ctx-empty">Run a search to see results</span>
     </div>
-
-    <!-- Results -->
     <div class="results-area" id="resultsArea">
       <div class="empty-state">
         <div class="empty-icon">⚖</div>
@@ -317,182 +241,44 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
         <div class="empty-sub">Select a search type, enter details and click Search</div>
       </div>
     </div>
-
   </div>
 </div>
 
 <script>
-// ── Country codes ──────────────────────────────────────────────────
-const COUNTRIES = {
-  AF:'Afghanistan',AL:'Albania',DZ:'Algeria',AO:'Angola',AR:'Argentina',AM:'Armenia',
-  AZ:'Azerbaijan',BH:'Bahrain',BY:'Belarus',BA:'Bosnia and Herzegovina',BR:'Brazil',
-  KH:'Cambodia',CM:'Cameroon',CF:'Central African Republic',CN:'China',CO:'Colombia',
-  CD:'Congo (DRC)',CU:'Cuba',EG:'Egypt',ER:'Eritrea',ET:'Ethiopia',
-  GE:'Georgia',GH:'Ghana',GN:'Guinea',HT:'Haiti',HK:'Hong Kong',
-  IN:'India',ID:'Indonesia',IR:'Iran',IQ:'Iraq',KZ:'Kazakhstan',
-  KE:'Kenya',KP:'North Korea',KW:'Kuwait',KG:'Kyrgyzstan',LB:'Lebanon',
-  LR:'Liberia',LY:'Libya',MK:'Macedonia',ML:'Mali',MR:'Mauritania',
-  MX:'Mexico',MD:'Moldova',MN:'Mongolia',ME:'Montenegro',MA:'Morocco',
-  MZ:'Mozambique',MM:'Myanmar',NA:'Namibia',NI:'Nicaragua',NE:'Niger',
-  NG:'Nigeria',PK:'Pakistan',PA:'Panama',PY:'Paraguay',PE:'Peru',
-  PH:'Philippines',RU:'Russia',RW:'Rwanda',SA:'Saudi Arabia',SN:'Senegal',
-  RS:'Serbia',SL:'Sierra Leone',SO:'Somalia',ZA:'South Africa',SS:'South Sudan',
-  SD:'Sudan',SY:'Syria',TJ:'Tajikistan',TZ:'Tanzania',TH:'Thailand',
-  TG:'Togo',TT:'Trinidad and Tobago',TN:'Tunisia',TM:'Turkmenistan',
-  UA:'Ukraine',AE:'United Arab Emirates',UG:'Uganda',UZ:'Uzbekistan',
-  VE:'Venezuela',VN:'Vietnam',YE:'Yemen',ZW:'Zimbabwe',
-  US:'United States',GB:'United Kingdom',FR:'France',DE:'Germany',
-  IT:'Italy',ES:'Spain',JP:'Japan',KR:'South Korea',
-}
-function countryName(code){return COUNTRIES[code]||code||'—'}
+const COUNTRIES={AF:'Afghanistan',AL:'Albania',DZ:'Algeria',AO:'Angola',AR:'Argentina',AM:'Armenia',AZ:'Azerbaijan',BH:'Bahrain',BY:'Belarus',BA:'Bosnia',BR:'Brazil',KH:'Cambodia',CM:'Cameroon',CF:'Central African Rep.',CN:'China',CO:'Colombia',CD:'Congo (DRC)',CU:'Cuba',EG:'Egypt',ER:'Eritrea',ET:'Ethiopia',GE:'Georgia',GH:'Ghana',GN:'Guinea',HT:'Haiti',HK:'Hong Kong',IN:'India',ID:'Indonesia',IR:'Iran',IQ:'Iraq',KZ:'Kazakhstan',KE:'Kenya',KP:'North Korea',KW:'Kuwait',KG:'Kyrgyzstan',LB:'Lebanon',LR:'Liberia',LY:'Libya',ML:'Mali',MR:'Mauritania',MX:'Mexico',MD:'Moldova',MN:'Mongolia',MA:'Morocco',MZ:'Mozambique',MM:'Myanmar',NA:'Namibia',NI:'Nicaragua',NE:'Niger',NG:'Nigeria',PK:'Pakistan',PA:'Panama',PY:'Paraguay',PE:'Peru',PH:'Philippines',RU:'Russia',RW:'Rwanda',SA:'Saudi Arabia',SN:'Senegal',RS:'Serbia',SL:'Sierra Leone',SO:'Somalia',ZA:'South Africa',SS:'South Sudan',SD:'Sudan',SY:'Syria',TJ:'Tajikistan',TZ:'Tanzania',TH:'Thailand',TG:'Togo',TN:'Tunisia',TM:'Turkmenistan',UA:'Ukraine',AE:'United Arab Emirates',UG:'Uganda',UZ:'Uzbekistan',VE:'Venezuela',VN:'Vietnam',YE:'Yemen',ZW:'Zimbabwe',US:'United States',GB:'United Kingdom',FR:'France',DE:'Germany',IT:'Italy',ES:'Spain',JP:'Japan',KR:'South Korea'}
+function countryName(c){return COUNTRIES[c.toUpperCase()]||c||'—'}
 
-// ── State ──────────────────────────────────────────────────────────
-let sdnData=[], selectedType='all', searchHistory=[], caseCounter=1000
+let sdnData=[],selectedType='all',searchHistory=[],caseCounter=1000
 
-// ── Boot ───────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded',()=>{
-  renderFields('all')
-  loadHistory()
-  loadData()
-})
-
-async function loadData(){
-  try{
-    const res=await fetch('/sdn.json')
-    if(!res.ok)throw new Error('HTTP '+res.status)
-    const data=await res.json()
-sdnData=data.records||[]
-const dataDate=new Date(data.updated)
-const dateStr=dataDate.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})
-document.getElementById('navStatus').textContent=sdnData.length.toLocaleString()+' records · Data: '+dateStr
-    setNavStatus('ready',sdnData.length.toLocaleString()+' SDN records loaded')
-    document.getElementById('searchBtn').disabled=false
-  }catch(e){
-    setNavStatus('error','Failed to load data')
-  }
-}
-
-function setNavStatus(state,text){
-  document.getElementById('navDot').className='nav-dot '+state
-  document.getElementById('navStatus').textContent=text
-}
-
-// ── Field templates ────────────────────────────────────────────────
 const FIELDS={
-  all:{
-    basic:[{id:'q_name',label:'Name',placeholder:'Full name, company, or vessel…'}],
-    advanced:[
-      {id:'q_city',label:'City',placeholder:'e.g. Moscow'},
-      {id:'q_state',label:'State / Province',placeholder:'e.g. California'},
-      {id:'q_country',label:'Country code',placeholder:'e.g. RU, IR, VE'},
-      {id:'q_id',label:'ID Number',placeholder:'Any ID number'},
-    ]
-  },
-  Person:{
-    basic:[{id:'q_name',label:'Full name',placeholder:'e.g. Nicolas Maduro'}],
-    advanced:[
-      {id:'q_dob',label:'Date of birth',placeholder:'YYYY-MM-DD',type:'date'},
-      {id:'q_city',label:'City',placeholder:'e.g. Caracas'},
-      {id:'q_state',label:'State / Province',placeholder:''},
-      {id:'q_country',label:'Country code',placeholder:'e.g. VE'},
-      {id:'q_id',label:'ID Number (Passport / National ID)',placeholder:''},
-    ]
-  },
-  Organization:{
-    basic:[{id:'q_name',label:'Entity name',placeholder:'e.g. Al-Rashid Bank'}],
-    advanced:[
-      {id:'q_doi',label:'Date of incorporation',placeholder:'YYYY-MM-DD',type:'date'},
-      {id:'q_dor',label:'Date of registration',placeholder:'YYYY-MM-DD',type:'date'},
-      {id:'q_city',label:'City',placeholder:''},
-      {id:'q_state',label:'State / Province',placeholder:''},
-      {id:'q_country',label:'Country code',placeholder:'e.g. IQ'},
-      {id:'q_id',label:'Business registration number',placeholder:''},
-      {id:'q_website',label:'Website',placeholder:'e.g. example.com'},
-    ]
-  },
-  Vessel:{
-    basic:[
-      {id:'q_name',label:'Vessel name',placeholder:'e.g. ARCTIC SEA'},
-      {id:'q_imo',label:'IMO Number',placeholder:'e.g. IMO 1234567'},
-    ],
-    advanced:[
-      {id:'q_mmsi',label:'MMSI',placeholder:'Maritime Mobile Service Identity'},
-      {id:'q_hull',label:'Hull Identification Number',placeholder:''},
-    ]
-  },
-  Airplane:{
-    basic:[
-      {id:'q_name',label:'Aircraft name',placeholder:'e.g. Boeing 737'},
-      {id:'q_icao',label:'ICAO Identifier',placeholder:'e.g. N123AB'},
-    ],
-    advanced:[
-      {id:'q_modes',label:'Mode S Transponder Code',placeholder:''},
-      {id:'q_tail',label:'Tail Number / Registration',placeholder:'e.g. N-12345'},
-    ]
-  },
-  Crypto:{
-    basic:[{id:'q_crypto',label:'Wallet address',placeholder:'BTC / ETH / other address…'}],
-    advanced:[]
-  }
+  all:{basic:[{id:'q_name',label:'Name',ph:'Full name, company or vessel…'}],adv:[{id:'q_city',label:'City',ph:'e.g. Moscow'},{id:'q_state',label:'State / Province',ph:''},{id:'q_country',label:'Country code',ph:'e.g. RU, IR, VE'},{id:'q_id',label:'ID Number',ph:'Any ID number'}]},
+  Person:{basic:[{id:'q_name',label:'Full name',ph:'e.g. Nicolas Maduro'}],adv:[{id:'q_dob',label:'Date of birth',ph:'',tp:'date'},{id:'q_city',label:'City',ph:'e.g. Caracas'},{id:'q_state',label:'State / Province',ph:''},{id:'q_country',label:'Country code',ph:'e.g. VE'},{id:'q_id',label:'Passport / National ID',ph:''}]},
+  Organization:{basic:[{id:'q_name',label:'Entity name',ph:'e.g. Al-Rashid Bank'}],adv:[{id:'q_doi',label:'Date of incorporation',ph:'',tp:'date'},{id:'q_city',label:'City',ph:''},{id:'q_state',label:'State / Province',ph:''},{id:'q_country',label:'Country code',ph:'e.g. IQ'},{id:'q_id',label:'Business reg. number',ph:''},{id:'q_website',label:'Website',ph:'e.g. example.com'}]},
+  Vessel:{basic:[{id:'q_name',label:'Vessel name',ph:'e.g. ARCTIC SEA'},{id:'q_imo',label:'IMO Number',ph:'e.g. IMO 1234567'}],adv:[{id:'q_mmsi',label:'MMSI',ph:'Maritime Mobile Service Identity'},{id:'q_hull',label:'Hull ID Number',ph:''}]},
+  Airplane:{basic:[{id:'q_name',label:'Aircraft name',ph:'e.g. Boeing 737'},{id:'q_icao',label:'ICAO Identifier',ph:'e.g. N123AB'}],adv:[{id:'q_modes',label:'Mode S Transponder',ph:''},{id:'q_tail',label:'Tail Number',ph:'e.g. N-12345'}]},
+  Crypto:{basic:[{id:'q_crypto',label:'Wallet address',ph:'BTC / ETH / other address…'}],adv:[]}
 }
 
 function renderFields(type){
-  const cfg=FIELDS[type]||FIELDS['all']
-  let html=''
+  const cfg=FIELDS[type]||FIELDS.all
+  let h=''
   cfg.basic.forEach(f=>{
-    html+=`<div class="field-group">
-      <label class="field-label" for="${f.id}">${f.label}</label>
-      <input class="field-input" id="${f.id}" type="${f.type||'text'}" placeholder="${f.placeholder}" autocomplete="off"/>
-    </div>`
+    h+=`<div class="field-group"><label class="field-label" for="${f.id}">${f.label}</label><input class="field-input" id="${f.id}" type="${f.tp||'text'}" placeholder="${f.ph}" autocomplete="off"/></div>`
   })
-  if(cfg.advanced.length){
-    html+=`<button class="adv-toggle" onclick="toggleAdv(this)">
-      Advanced search
-      <span class="adv-arrow">▾</span>
-    </button>
-    <div class="adv-fields" id="advFields">`
-    // pair fields into rows of 2 where sensible
-    const adv=cfg.advanced
-    let i=0
-    while(i<adv.length){
-      const f=adv[i]
-      const next=adv[i+1]
-      const isDate=f.type==='date'
-      const nextDate=next&&next.type==='date'
-      if(!isDate&&next&&!nextDate&&adv.length>2){
-        html+=`<div class="field-row">
-          <div class="field-group">
-            <label class="field-label" for="${f.id}">${f.label}</label>
-            <input class="field-input" id="${f.id}" type="${f.type||'text'}" placeholder="${f.placeholder}" autocomplete="off"/>
-          </div>
-          <div class="field-group">
-            <label class="field-label" for="${next.id}">${next.label}</label>
-            <input class="field-input" id="${next.id}" type="${next.type||'text'}" placeholder="${next.placeholder}" autocomplete="off"/>
-          </div>
-        </div>`
-        i+=2
-      } else {
-        html+=`<div class="field-group">
-          <label class="field-label" for="${f.id}">${f.label}</label>
-          <input class="field-input" id="${f.id}" type="${f.type||'text'}" placeholder="${f.placeholder}" autocomplete="off"/>
-        </div>`
-        i++
-      }
-    }
-    html+=`</div>`
+  if(cfg.adv.length){
+    h+=`<button class="adv-toggle" onclick="toggleAdv(this)"><span>Advanced search</span><span class="adv-arrow" id="advArrow">▾</span></button><div class="adv-fields" id="advFields">`
+    cfg.adv.forEach(f=>{
+      h+=`<div class="field-group"><label class="field-label" for="${f.id}">${f.label}</label><input class="field-input" id="${f.id}" type="${f.tp||'text'}" placeholder="${f.ph}" autocomplete="off"/></div>`
+    })
+    h+=`</div>`
   }
-  document.getElementById('dynamicFields').innerHTML=html
-  // Enter key
-  document.querySelectorAll('.field-input').forEach(inp=>{
-    inp.addEventListener('keydown',e=>{if(e.key==='Enter')runSearch()})
-  })
+  document.getElementById('dynamicFields').innerHTML=h
+  document.querySelectorAll('.field-input').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')runSearch()}))
 }
 
 function toggleAdv(btn){
-  const panel=document.getElementById('advFields')
-  const arrow=btn.querySelector('.adv-arrow')
-  panel.classList.toggle('open')
-  arrow.classList.toggle('open')
+  const p=document.getElementById('advFields'),a=document.getElementById('advArrow')
+  p.classList.toggle('open');a.classList.toggle('open')
 }
 
 function setType(btn){
@@ -503,214 +289,117 @@ function setType(btn){
   updateChips()
 }
 
-// ── Filter chips ───────────────────────────────────────────────────
+function getVal(id){const e=document.getElementById(id);return e?e.value.trim():''}
+
 function updateChips(){
   const chips=[]
-  if(selectedType!=='all'&&selectedType!=='Crypto'){
-    const typeLabels={Person:'Individual',Organization:'Entity',Vessel:'Vessel',Airplane:'Aircraft'}
-    chips.push({label:'Type: '+typeLabels[selectedType],key:'type'})
-  }
-  const country=getVal('q_country')
-  if(country)chips.push({label:'Country: '+country.toUpperCase(),key:'country'})
-  const dob=getVal('q_dob')
-  if(dob)chips.push({label:'DOB: '+dob,key:'dob'})
-
-  const area=document.getElementById('chipsArea')
-  area.innerHTML=chips.map(c=>
-    `<span class="chip">${c.label}<span class="chip-x" onclick="removeChip('${c.key}')">×</span></span>`
-  ).join('')
+  const tl={Person:'Individual',Organization:'Entity',Vessel:'Vessel',Airplane:'Aircraft',Crypto:'Crypto'}
+  if(selectedType!=='all')chips.push({label:'Type: '+tl[selectedType],key:'type'})
+  const c=getVal('q_country');if(c)chips.push({label:'Country: '+c.toUpperCase(),key:'country'})
+  const d=getVal('q_dob');if(d)chips.push({label:'DOB: '+d,key:'dob'})
+  document.getElementById('chipsArea').innerHTML=chips.map(c=>`<span class="chip">${c.label}<span class="chip-x" onclick="removeChip('${c.key}')">×</span></span>`).join('')
 }
 
 function removeChip(key){
-  if(key==='type'){
-    document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'))
-    document.querySelector('[data-type="all"]').classList.add('active')
-    selectedType='all'
-    renderFields('all')
-  }
-  if(key==='country'){const el=document.getElementById('q_country');if(el)el.value=''}
-  if(key==='dob'){const el=document.getElementById('q_dob');if(el)el.value=''}
+  if(key==='type'){document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));document.querySelector('[data-type="all"]').classList.add('active');selectedType='all';renderFields('all')}
+  if(key==='country'){const e=document.getElementById('q_country');if(e)e.value=''}
+  if(key==='dob'){const e=document.getElementById('q_dob');if(e)e.value=''}
   updateChips()
 }
 
-function getVal(id){
-  const el=document.getElementById(id)
-  return el?el.value.trim():''
-}
-
-// ── Matching algorithm ─────────────────────────────────────────────
-function normalize(str){
-  return (str||'').toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Z0-9 ]/g,"").trim()
-}
-function normalizeArabic(s){
-  return s.replace(/\b(MOHAMED|MOHAMMAD|MUHAMED|MOHAMMED)\b/g,"MUHAMMAD").replace(/\bABD AL\b/g,"ABDUL")
-}
-function normalizeRussian(s){
-  return s.replace(/\b(\w{5,})(OVA|OV|EVA|EV|INA|IN|SKAYA|SKY)\b/g,"$1")
-}
-function normalizeInput(name){
-  let s=normalize(name);s=normalizeArabic(s);s=normalizeRussian(s);return s
-}
-function tokenize(name){return normalizeInput(name).split(/\s+/).filter(Boolean)}
+// ── Matching algorithm ────────────────────────────────────────────
+function normalize(s){return(s||'').toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Z0-9 ]/g,"").trim()}
+function normalizeArabic(s){return s.replace(/\b(MOHAMED|MOHAMMAD|MUHAMED|MOHAMMED)\b/g,"MUHAMMAD").replace(/\bABD AL\b/g,"ABDUL")}
+function normalizeRussian(s){return s.replace(/\b(\w{5,})(OVA|OV|EVA|EV|INA|IN|SKAYA|SKY)\b/g,"$1")}
+function normalizeInput(n){let s=normalize(n);s=normalizeArabic(s);s=normalizeRussian(s);return s}
+function tokenize(n){return normalizeInput(n).split(/\s+/).filter(Boolean)}
 function levenshtein(a,b){
   const dp=Array.from({length:b.length+1},(_,j)=>Array.from({length:a.length+1},(_,i)=>j===0?i:i===0?j:0))
-  for(let j=1;j<=b.length;j++)
-    for(let i=1;i<=a.length;i++)
-      dp[j][i]=a[i-1]===b[j-1]?dp[j-1][i-1]:1+Math.min(dp[j-1][i-1],dp[j][i-1],dp[j-1][i])
+  for(let j=1;j<=b.length;j++)for(let i=1;i<=a.length;i++)dp[j][i]=a[i-1]===b[j-1]?dp[j-1][i-1]:1+Math.min(dp[j-1][i-1],dp[j][i-1],dp[j-1][i])
   return dp[b.length][a.length]
 }
-function similarity(a,b){
-  const max=Math.max(a.length,b.length)
-  return max===0?100:((max-levenshtein(a,b))/max)*100
-}
+function similarity(a,b){const mx=Math.max(a.length,b.length);return mx===0?100:((mx-levenshtein(a,b))/mx)*100}
 function soundex(s){
-  const map={B:1,F:1,P:1,V:1,C:2,G:2,J:2,K:2,Q:2,S:2,X:2,Z:2,D:3,T:3,L:4,M:5,N:5,R:6}
-  s=normalize(s).replace(/\s/g,'')
-  if(!s)return'0000'
-  let result=s[0],prev=map[s[0]]||0
-  for(let i=1;i<s.length&&result.length<4;i++){
-    const code=map[s[i]]||0
-    if(code&&code!==prev){result+=code;prev=code}
-    else if(!code)prev=0
-  }
-  return result.padEnd(4,'0')
+  const m={B:1,F:1,P:1,V:1,C:2,G:2,J:2,K:2,Q:2,S:2,X:2,Z:2,D:3,T:3,L:4,M:5,N:5,R:6}
+  s=normalize(s).replace(/\s/g,'');if(!s)return'0000'
+  let r=s[0],p=m[s[0]]||0
+  for(let i=1;i<s.length&&r.length<4;i++){const c=m[s[i]]||0;if(c&&c!==p){r+=c;p=c}else if(!c)p=0}
+  return r.padEnd(4,'0')
 }
-function generateVariants(tokens){
-  const v=[]
-  v.push(tokens.join(' '))
-  if(tokens.length>=2){v.push(tokens[0]+' '+tokens[tokens.length-1]);v.push(tokens[tokens.length-1]+' '+tokens[0])}
-  if(tokens.length>=3){v.push(tokens[0]+' '+tokens[tokens.length-2]+' '+tokens[tokens.length-1]);v.push(tokens.slice(-2).join(' '));v.push(tokens.slice(0,2).join(' '))}
+function generateVariants(t){
+  const v=[t.join(' ')]
+  if(t.length>=2){v.push(t[0]+' '+t[t.length-1]);v.push(t[t.length-1]+' '+t[0])}
+  if(t.length>=3){v.push(t[0]+' '+t[t.length-2]+' '+t[t.length-1]);v.push(t.slice(-2).join(' '));v.push(t.slice(0,2).join(' '))}
   return [...new Set(v)]
 }
 function matchEntity(input,entity){
-  const iNorm=normalizeInput(input.name),tNorm=normalizeInput(entity.name)
-  const iTokens=tokenize(input.name),tTokens=tokenize(entity.name)
-  if(iNorm===tNorm)return{score:100,risk:'HIGH',reasons:['Exact full match'],nameScore:100,aliasScore:0,contextScore:0}
-  let total=0,reasons=[],nameScore=0,aliasScore=0,contextScore=0
-  // Variants
-  const iV=generateVariants(iTokens),tV=generateVariants(tTokens)
+  const iN=normalizeInput(input.name),tN=normalizeInput(entity.name)
+  const iT=tokenize(input.name),tT=tokenize(entity.name)
+  if(iN===tN)return{score:100,risk:'HIGH',reasons:['Exact full match'],nameScore:100,aliasScore:0,contextScore:0}
+  let total=0,reasons=[],ns=0,as=0,cs=0
+  const iV=generateVariants(iT),tV=generateVariants(tT)
   let vs=0
-  iV.forEach(iv=>tV.forEach(tv=>{
-    const sim=similarity(iv,tv)
-    if(sim>92){vs+=25;reasons.push('Strong variant match')}
-    else if(sim>80){vs+=15;reasons.push('Fuzzy variant match')}
-  }))
-  nameScore+=Math.min(vs,50);total+=Math.min(vs,50)
-  // Tokens
+  iV.forEach(iv=>tV.forEach(tv=>{const s=similarity(iv,tv);if(s>92){vs+=25;reasons.push('Strong variant match')}else if(s>80){vs+=15;reasons.push('Fuzzy variant match')}}))
+  ns+=Math.min(vs,50);total+=Math.min(vs,50)
   let ts=0
-  iTokens.forEach(iw=>tTokens.forEach(tw=>{
-    const sim=similarity(iw,tw)
-    if(sim>92){ts+=12;reasons.push('Token exact: '+iw)}
-    else if(sim>80){ts+=7;reasons.push('Token fuzzy: '+iw)}
-    if(soundex(iw)===soundex(tw)&&sim<=92){ts+=5;reasons.push('Phonetic match: '+iw)}
-  }))
-  nameScore+=Math.min(ts,30);total+=Math.min(ts,30)
-  // Last name
-  if(entity.type&&entity.type.toLowerCase()==='person'&&iTokens.length&&tTokens.length){
-    const sim=similarity(iTokens[iTokens.length-1],tTokens[tTokens.length-1])
-    if(sim>92){total+=20;nameScore+=20;reasons.push('Last name exact match')}
-    else if(sim>80){total+=10;nameScore+=10;reasons.push('Last name fuzzy match')}
+  iT.forEach(iw=>tT.forEach(tw=>{const s=similarity(iw,tw);if(s>92){ts+=12;reasons.push('Token exact: '+iw)}else if(s>80){ts+=7;reasons.push('Token fuzzy: '+iw)};if(soundex(iw)===soundex(tw)&&s<=92){ts+=5;reasons.push('Phonetic match: '+iw)}}))
+  ns+=Math.min(ts,30);total+=Math.min(ts,30)
+  if(entity.type&&entity.type.toLowerCase()==='person'&&iT.length&&tT.length){
+    const s=similarity(iT[iT.length-1],tT[tT.length-1])
+    if(s>92){total+=20;ns+=20;reasons.push('Last name exact match')}
+    else if(s>80){total+=10;ns+=10;reasons.push('Last name fuzzy match')}
     else{total-=15;reasons.push('Last name mismatch')}
   }
-  // Aliases
-  let as2=0
-  ;(entity.aliases||[]).forEach(alias=>{
-    const sim=similarity(iNorm,normalizeInput(alias))
-    if(sim>90){as2+=20;reasons.push('Alias match: '+alias)}
-    else if(sim>80){as2+=10;reasons.push('Alias fuzzy: '+alias)}
-  })
-  aliasScore=Math.min(as2,20);total+=aliasScore
-  // Context
-  if(input.dob&&entity.dob){
-    if(input.dob===entity.dob){contextScore+=40;total+=40;reasons.push('Date of birth exact match')}
-    else{contextScore-=20;total-=20;reasons.push('Date of birth mismatch')}
-  }
-  if(input.country){
-    const uc=input.country.toUpperCase()
-    if((entity.countries||[]).some(c=>c.toUpperCase()===uc)){
-      contextScore+=15;total+=15;reasons.push('Country match')
-    } else if((entity.countries||[]).length){
-      reasons.push('Country mismatch')
-    }
-  }
+  let al=0
+  ;(entity.aliases||[]).forEach(alias=>{const s=similarity(iN,normalizeInput(alias));if(s>90){al+=20;reasons.push('Alias match: '+alias)}else if(s>80){al+=10;reasons.push('Alias fuzzy: '+alias)}})
+  as=Math.min(al,20);total+=as
+  if(input.dob&&entity.dob){if(input.dob===entity.dob){cs+=40;total+=40;reasons.push('Date of birth match')}else{cs-=20;total-=20;reasons.push('Date of birth mismatch')}}
+  if(input.country){const uc=input.country.toUpperCase();if((entity.countries||[]).some(c=>c.toUpperCase()===uc)){cs+=15;total+=15;reasons.push('Country match')}else if((entity.countries||[]).length)reasons.push('Country mismatch')}
   total=Math.max(0,Math.min(100,total))
   const risk=total>=85?'HIGH':total>=70?'MEDIUM':'LOW'
-  return{score:Math.round(total),risk,reasons,nameScore:Math.min(100,Math.round(nameScore)),aliasScore:Math.min(100,Math.round(aliasScore)),contextScore:Math.min(100,Math.round(Math.abs(contextScore)))}
+  return{score:Math.round(total),risk,reasons,nameScore:Math.min(100,Math.round(ns)),aliasScore:Math.min(100,Math.round(as)),contextScore:Math.min(100,Math.round(Math.abs(cs)))}
 }
 
-// ── Search ─────────────────────────────────────────────────────────
+// ── Search with pre-filter ────────────────────────────────────────
 function runSearch(){
   const query=getVal('q_name')||getVal('q_crypto')||getVal('q_imo')||getVal('q_icao')
   if(!query){alert('Please enter a search term.');return}
   if(!sdnData.length){alert('Data still loading. Please wait.');return}
-
   const minScore=parseInt(document.getElementById('minScore').value)
   const filterCountry=getVal('q_country').toUpperCase()
   const filterDob=getVal('q_dob')
   const input={name:query,dob:filterDob||null,country:filterCountry||null}
-
-  // Show loading
-  document.getElementById('resultsArea').innerHTML=`
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <div class="loading-text">Scanning ${sdnData.length.toLocaleString()} SDN records…</div>
-    </div>`
+  document.getElementById('resultsArea').innerHTML=`<div class="loading-state"><div class="spinner"></div><div class="loading-text">Scanning ${sdnData.length.toLocaleString()} SDN records…</div></div>`
   updateChips()
-
   const t0=performance.now()
   setTimeout(()=>{
+    const qTokens=new Set(normalizeInput(query).split(/\s+/).filter(t=>t.length>2))
     const results=[]
-    const qTokens=new Set(normalizeInput(query).split(/\s+/).filter(b=>b.length>2))
-
-for(const row of sdnData){
-  if(selectedType!=='all'&&selectedType!=='Crypto'){
-    const rt=(row.type||'').toLowerCase()
-    if(rt!==selectedType.toLowerCase())continue
-  }
-  if(filterCountry&&!(row.countries||[]).some(c=>c.toUpperCase()===filterCountry))continue
-
-  // Quick pre-filter: skip if zero token overlap
-  const rTokens=normalizeInput(row.name).split(/\s+/).filter(b=>b.length>2)
-  const hasOverlap=rTokens.some(t=>{
-    // Check exact or near match against query tokens
-    for(const qt of qTokens){
-      if(t===qt)return true
-      if(t.length>3&&qt.length>3&&(t.startsWith(qt.slice(0,4))||qt.startsWith(t.slice(0,4))))return true
-    }
-    return false
-  })
-
-  // Also check aliases for overlap
-  const aliasOverlap=(row.aliases||[]).some(alias=>
-    normalizeInput(alias).split(/\s+/).some(t=>qTokens.has(t))
-  )
-
-  if(!hasOverlap&&!aliasOverlap)continue
-
-  const match=matchEntity(input,row)
-  if(match.score>=minScore)results.push({...match,row})
-}
+    for(const row of sdnData){
+      if(selectedType!=='all'&&selectedType!=='Crypto'){if((row.type||'').toLowerCase()!==selectedType.toLowerCase())continue}
       if(filterCountry&&!(row.countries||[]).some(c=>c.toUpperCase()===filterCountry))continue
-
+      // Pre-filter: quick token overlap
+      const rTokens=normalizeInput(row.name).split(/\s+/).filter(t=>t.length>2)
+      const hasOverlap=rTokens.some(t=>{for(const qt of qTokens){if(t===qt)return true;if(t.length>3&&qt.length>3&&(t.startsWith(qt.slice(0,4))||qt.startsWith(t.slice(0,4))))return true}return false})
+      const aliasOverlap=(row.aliases||[]).some(a=>normalizeInput(a).split(/\s+/).some(t=>qTokens.has(t)))
+      if(!hasOverlap&&!aliasOverlap)continue
       const match=matchEntity(input,row)
       if(match.score>=minScore)results.push({...match,row})
     }
     results.sort((a,b)=>b.score-a.score)
     const elapsed=Math.round(performance.now()-t0)
-
     addHistory(query,selectedType,results.length)
     updateContextBar(query,selectedType,filterCountry,elapsed,results.length)
     renderResults(results,query)
   },30)
 }
 
-// ── Context bar ────────────────────────────────────────────────────
 function updateContextBar(query,type,country,ms,total){
-  const typeLabels={all:'All',Person:'Individual',Organization:'Entity',Vessel:'Vessel',Airplane:'Aircraft',Crypto:'Crypto'}
+  const tl={all:'All',Person:'Individual',Organization:'Entity',Vessel:'Vessel',Airplane:'Aircraft',Crypto:'Crypto'}
   document.getElementById('contextBar').innerHTML=`
     <div class="ctx-item"><span class="ctx-label">Query</span><span class="ctx-value">${query}</span></div>
     <div class="ctx-divider"></div>
-    <div class="ctx-item"><span class="ctx-label">Type</span><span class="ctx-value">${typeLabels[type]||type}</span></div>
+    <div class="ctx-item"><span class="ctx-label">Type</span><span class="ctx-value">${tl[type]||type}</span></div>
     ${country?`<div class="ctx-divider"></div><div class="ctx-item"><span class="ctx-label">Country</span><span class="ctx-value">${country}</span></div>`:''}
     <div class="ctx-divider"></div>
     <div class="ctx-item"><span class="ctx-label">Time</span><span class="ctx-value">${ms}ms</span></div>
@@ -718,53 +407,34 @@ function updateContextBar(query,type,country,ms,total){
     <div class="ctx-item"><span class="ctx-label">Matches</span><span class="ctx-value">${total}</span></div>`
 }
 
-// ── Render results ─────────────────────────────────────────────────
 function renderResults(hits,query){
-  const high=hits.filter(h=>h.risk==='HIGH')
-  const med=hits.filter(h=>h.risk==='MEDIUM')
-  const low=hits.filter(h=>h.risk==='LOW')
+  const high=hits.filter(h=>h.risk==='HIGH'),med=hits.filter(h=>h.risk==='MEDIUM'),low=hits.filter(h=>h.risk==='LOW')
   const hasHits=hits.length>0
-
   let banner=''
-  if(!hasHits){
-    banner=`<div class="summary-banner clear"><div class="banner-icon">✓</div><div><div class="banner-title">No sanctions match found</div><div class="banner-desc">"${query}" returned no results above the minimum score threshold. Record appears clear.</div></div></div>`
-  } else if(high.length){
-    banner=`<div class="summary-banner hit"><div class="banner-icon">⚑</div><div><div class="banner-title">${high.length} high-confidence match${high.length>1?'es':''} found</div><div class="banner-desc">Immediate review required. Do not proceed without compliance officer verification.</div></div></div>`
-  } else {
-    banner=`<div class="summary-banner partial"><div class="banner-icon">◉</div><div><div class="banner-title">${hits.length} potential match${hits.length>1?'es':''} — review recommended</div><div class="banner-desc">Low to medium confidence matches found. Further due diligence recommended.</div></div></div>`
-  }
-
+  if(!hasHits)banner=`<div class="summary-banner clear"><div class="banner-icon">✓</div><div><div class="banner-title">No sanctions match found</div><div class="banner-desc">"${query}" returned no results above threshold. Record appears clear.</div></div></div>`
+  else if(high.length)banner=`<div class="summary-banner hit"><div class="banner-icon">⚑</div><div><div class="banner-title">${high.length} high-confidence match${high.length>1?'es':''} found</div><div class="banner-desc">Immediate review required. Do not proceed without compliance officer verification.</div></div></div>`
+  else banner=`<div class="summary-banner partial"><div class="banner-icon">◉</div><div><div class="banner-title">${hits.length} potential match${hits.length>1?'es':''} — review recommended</div><div class="banner-desc">Low to medium confidence matches. Further due diligence recommended.</div></div></div>`
   let groups=''
   if(high.length)groups+=renderGroup('High Confidence','high',high)
   if(med.length) groups+=renderGroup('Medium Confidence','medium',med)
   if(low.length) groups+=renderGroup('Low Confidence','low',low)
-
-  document.getElementById('resultsArea').innerHTML=banner+groups+
-    (!hasHits?`<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px">No records found in OFAC SDN database above score threshold</div>`:'')
+  document.getElementById('resultsArea').innerHTML=banner+groups+(!hasHits?`<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px">No records found in OFAC SDN database above score threshold</div>`:'')
 }
 
 function renderGroup(title,cls,hits){
-  return `<div class="result-group">
-    <div class="group-header ${cls}">
-      <span class="group-title">${title}</span>
-      <span class="group-count">${hits.length}</span>
-    </div>
-    ${hits.map((h,i)=>renderCard(h,cls+i)).join('')}
-  </div>`
+  return `<div class="result-group"><div class="group-header ${cls}"><span class="group-title">${title}</span><span class="group-count">${hits.length}</span></div>${hits.map((h,i)=>renderCard(h,cls+'_'+i)).join('')}</div>`
 }
 
 function renderCard(h,uid){
-  const r=h.row
-  const type=(r.type||'other').toLowerCase()
+  const r=h.row,type=(r.type||'other').toLowerCase()
   const tc=['person','organization','vessel','airplane'].includes(type)?'t-'+type:'t-other'
   const tl=type.charAt(0).toUpperCase()+type.slice(1)
-  const barCls=h.risk==='HIGH'?'high':h.risk==='MEDIUM'?'medium':'low'
+  const bc=h.risk==='HIGH'?'high':h.risk==='MEDIUM'?'medium':'low'
   const countries=(r.countries||[]).map(countryName).slice(0,3).join(', ')||'—'
   const aliases=(r.aliases||[]).slice(0,8)
   const programs=(r.programs||[]).slice(0,5)
-  const negReasons=h.reasons.filter(r=>r.includes('mismatch'))
-  const posReasons=h.reasons.filter(r=>!r.includes('mismatch')).slice(0,6)
-
+  const posR=h.reasons.filter(x=>!x.includes('mismatch')).slice(0,6)
+  const negR=h.reasons.filter(x=>x.includes('mismatch'))
   return `<div class="result-card" id="card_${uid}">
     <div class="card-main">
       <div class="card-top">
@@ -777,132 +447,103 @@ function renderCard(h,uid){
           <span class="type-badge ${tc}">${tl}</span>
         </div>
       </div>
-
       <div class="conf-row">
-        <div class="conf-bar-wrap">
-          <div class="conf-bar-fill ${barCls}" style="width:${h.score}%"></div>
-        </div>
-        <span class="conf-score ${barCls}">${h.score}%</span>
+        <div class="conf-bar-wrap"><div class="conf-bar-fill ${bc}" style="width:${h.score}%"></div></div>
+        <span class="conf-score ${bc}">${h.score}%</span>
       </div>
-
       <div class="card-meta">
         <div class="meta-item"><span class="meta-label">Countries:</span><span class="meta-value">${countries}</span></div>
         ${r.dob?`<div class="meta-item"><span class="meta-label">DOB:</span><span class="meta-value">${r.dob}</span></div>`:''}
         ${programs.length?`<div class="meta-item"><span class="meta-label">Programs:</span><span class="meta-value">${programs.join(', ')}</span></div>`:''}
       </div>
-
       <div class="card-actions">
         <button class="action-btn detail" onclick="toggleExplain('${uid}')">Explain match</button>
         <button class="action-btn fp" id="fp_${uid}" onclick="toggleFP('${uid}')">Mark false positive</button>
-        <button class="action-btn case" onclick="createCase('${uid}')">Create case</button>
+        <button class="action-btn case-btn" onclick="createCase('${uid}')">Create case</button>
         <span class="case-id-display" id="caseid_${uid}"></span>
       </div>
     </div>
-
     <div class="explain-section" id="explain_${uid}">
       <div class="explain-title">Match explanation</div>
       <div class="explain-grid">
-        <div class="explain-stat">
-          <div class="explain-stat-num">${h.nameScore}%</div>
-          <div class="explain-stat-label">Name similarity</div>
-        </div>
-        <div class="explain-stat">
-          <div class="explain-stat-num">${h.aliasScore}%</div>
-          <div class="explain-stat-label">Alias contribution</div>
-        </div>
-        <div class="explain-stat">
-          <div class="explain-stat-num">${h.contextScore}%</div>
-          <div class="explain-stat-label">Context score</div>
-        </div>
+        <div class="explain-stat"><div class="explain-stat-num">${h.nameScore}%</div><div class="explain-stat-label">Name similarity</div></div>
+        <div class="explain-stat"><div class="explain-stat-num">${h.aliasScore}%</div><div class="explain-stat-label">Alias contribution</div></div>
+        <div class="explain-stat"><div class="explain-stat-num">${h.contextScore}%</div><div class="explain-stat-label">Context score</div></div>
       </div>
       <div class="reasons-list">
-        ${posReasons.map(r=>`<span class="reason-chip">${r}</span>`).join('')}
-        ${negReasons.map(r=>`<span class="reason-chip negative">${r}</span>`).join('')}
+        ${posR.map(r=>`<span class="reason-chip">${r}</span>`).join('')}
+        ${negR.map(r=>`<span class="reason-chip negative">${r}</span>`).join('')}
       </div>
-      ${aliases.length?`
-      <div class="tags-section" style="margin-top:10px">
-        <div class="tags-label">Aliases / AKAs</div>
-        <div class="tags-row">${aliases.map(a=>`<span class="alias-tag">${a}</span>`).join('')}</div>
-      </div>`:''}
+      ${aliases.length?`<div class="tags-section"><div class="tags-label">Aliases / AKAs</div><div class="tags-row">${aliases.map(a=>`<span class="alias-tag">${a}</span>`).join('')}</div></div>`:''}
+      ${programs.length?`<div class="tags-section" style="margin-top:8px"><div class="tags-label">Programs</div><div class="tags-row">${programs.map(p=>`<span class="prog-tag">${p}</span>`).join('')}</div></div>`:''}
     </div>
   </div>`
 }
 
-// ── Actions ────────────────────────────────────────────────────────
-function toggleExplain(uid){
-  document.getElementById('explain_'+uid).classList.toggle('open')
-}
-
+function toggleExplain(uid){document.getElementById('explain_'+uid).classList.toggle('open')}
 function toggleFP(uid){
-  const btn=document.getElementById('fp_'+uid)
-  const card=document.getElementById('card_'+uid)
-  if(btn.classList.contains('active')){
-    btn.classList.remove('active')
-    btn.textContent='Mark false positive'
-    card.classList.remove('flagged')
-  } else {
-    btn.classList.add('active')
-    btn.textContent='✓ Marked as false positive'
-    card.classList.add('flagged')
-  }
+  const btn=document.getElementById('fp_'+uid),card=document.getElementById('card_'+uid)
+  if(btn.classList.contains('active')){btn.classList.remove('active');btn.textContent='Mark false positive';card.classList.remove('flagged')}
+  else{btn.classList.add('active');btn.textContent='✓ Marked as false positive';card.classList.add('flagged')}
 }
-
 function createCase(uid){
   const el=document.getElementById('caseid_'+uid)
   if(el.classList.contains('show')){el.classList.remove('show');el.innerHTML='';return}
-  const id='CASE-2026-'+String(++caseCounter).padStart(6,'0')
-  el.innerHTML=`📋 ${id}`
+  el.innerHTML='📋 CASE-2026-'+String(++caseCounter).padStart(6,'0')
   el.classList.add('show')
 }
 
-// ── Search history ─────────────────────────────────────────────────
 function loadHistory(){
   try{searchHistory=JSON.parse(localStorage.getItem('sc_history')||'[]')}catch(e){searchHistory=[]}
   renderHistory()
 }
-
 function addHistory(query,type,count){
-  const typeLabels={all:'All',Person:'Individual',Organization:'Entity',Vessel:'Vessel',Airplane:'Aircraft',Crypto:'Crypto'}
-  searchHistory.unshift({query,type:typeLabels[type]||type,count,ts:Date.now()})
+  const tl={all:'All',Person:'Individual',Organization:'Entity',Vessel:'Vessel',Airplane:'Aircraft',Crypto:'Crypto'}
+  searchHistory.unshift({query,type:tl[type]||type,count,ts:Date.now()})
   searchHistory=searchHistory.slice(0,8)
   try{localStorage.setItem('sc_history',JSON.stringify(searchHistory))}catch(e){}
   renderHistory()
 }
-
 function renderHistory(){
   const list=document.getElementById('historyList')
   if(!searchHistory.length){list.innerHTML='<div class="history-empty">No recent searches</div>';return}
-  list.innerHTML=searchHistory.map(h=>`
-    <div class="history-item" onclick="rerunSearch('${h.query.replace(/'/g,"\\'")}')">
-      <span class="history-icon">↺</span>
-      <span class="history-text">${h.query}</span>
-      <span class="history-type">${h.type} · ${h.count}</span>
-    </div>`).join('')
+  list.innerHTML=searchHistory.map(h=>`<div class="history-item" onclick="rerunSearch('${h.query.replace(/'/g,"\\'")}')"><span class="history-icon">↺</span><span class="history-text">${h.query}</span><span class="history-type">${h.type} · ${h.count}</span></div>`).join('')
 }
+function rerunSearch(q){const i=document.getElementById('q_name')||document.getElementById('q_crypto');if(i){i.value=q;runSearch()}}
 
-function rerunSearch(query){
-  const inp=document.getElementById('q_name')||document.getElementById('q_crypto')
-  if(inp){inp.value=query;runSearch()}
-}
-
-// ── Clear ──────────────────────────────────────────────────────────
 function clearAll(){
   document.querySelectorAll('.field-input').forEach(i=>i.value='')
   document.getElementById('minScore').value=65
   document.getElementById('scoreVal').textContent='65%'
   document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'))
   document.querySelector('[data-type="all"]').classList.add('active')
-  selectedType='all'
-  renderFields('all')
-  updateChips()
-  document.getElementById('resultsArea').innerHTML=`
-    <div class="empty-state">
-      <div class="empty-icon">⚖</div>
-      <div class="empty-title">Screening Tool</div>
-      <div class="empty-sub">Select a search type, enter details and click Search</div>
-    </div>`
+  selectedType='all';renderFields('all');updateChips()
+  document.getElementById('resultsArea').innerHTML=`<div class="empty-state"><div class="empty-icon">⚖</div><div class="empty-title">Screening Tool</div><div class="empty-sub">Select a search type, enter details and click Search</div></div>`
   document.getElementById('contextBar').innerHTML='<span class="ctx-empty">Run a search to see results</span>'
 }
+
+async function loadData(){
+  try{
+    const res=await fetch('/sdn.json')
+    if(!res.ok)throw new Error('HTTP '+res.status)
+    const data=await res.json()
+    sdnData=data.records||[]
+    const dt=new Date(data.updated)
+    const ds=dt.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})
+    document.getElementById('navDot').className='nav-dot ready'
+    document.getElementById('navStatus').textContent=sdnData.length.toLocaleString()+' records · '+ds
+    document.getElementById('searchBtn').disabled=false
+  }catch(e){
+    document.getElementById('navDot').className='nav-dot error'
+    document.getElementById('navStatus').textContent='Failed to load data'
+  }
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+  renderFields('all')
+  loadHistory()
+  loadData()
+})
 </script>
 </body>
 </html>
