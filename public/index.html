@@ -606,7 +606,7 @@ function matchEntity(input,entity){
   }))
   nameScore+=Math.min(ts,30);total+=Math.min(ts,30)
   // Last name
-  if(iTokens.length&&tTokens.length){
+  if(entity.type&&entity.type.toLowerCase()==='person'&&iTokens.length&&tTokens.length){
     const sim=similarity(iTokens[iTokens.length-1],tTokens[tTokens.length-1])
     if(sim>92){total+=20;nameScore+=20;reasons.push('Last name exact match')}
     else if(sim>80){total+=10;nameScore+=10;reasons.push('Last name fuzzy match')}
