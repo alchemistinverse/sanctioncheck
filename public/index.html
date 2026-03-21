@@ -361,7 +361,10 @@ async function loadData(){
     const res=await fetch('/sdn.json')
     if(!res.ok)throw new Error('HTTP '+res.status)
     const data=await res.json()
-    sdnData=data.records||[]
+sdnData=data.records||[]
+const dataDate=new Date(data.updated)
+const dateStr=dataDate.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'})
+document.getElementById('navStatus').textContent=sdnData.length.toLocaleString()+' records · Data: '+dateStr
     setNavStatus('ready',sdnData.length.toLocaleString()+' SDN records loaded')
     document.getElementById('searchBtn').disabled=false
   }catch(e){
