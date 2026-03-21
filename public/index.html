@@ -3,440 +3,877 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SanctionCheck — Free OFAC Screening Tool</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<title>SanctionCheck — Screening Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:#0a0c10; --surface:#111318; --surface2:#181b22;
-  --border:#1f2330; --border2:#2a2f3f;
-  --accent:#00e5a0; --accent-dim:rgba(0,229,160,0.12); --accent-glow:rgba(0,229,160,0.25);
-  --red:#ff4d4d; --red-dim:rgba(255,77,77,0.12);
-  --amber:#ffb347; --amber-dim:rgba(255,179,71,0.12);
-  --text:#e8eaf2; --text2:#7b8099; --text3:#4a4f65;
-  --mono:'IBM Plex Mono',monospace;
-  --display:'Syne',sans-serif;
-  --body:'Inter',sans-serif;
-}
+/* ── Reset & Variables ─────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;overflow-x:hidden;}
-body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:40px 40px;opacity:0.35;pointer-events:none;z-index:0;}
-body::after{content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(0,229,160,0.05) 0%,transparent 70%);pointer-events:none;z-index:0;}
-.wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:0 24px;}
+:root{
+  --bg:#f4f5f7;
+  --surface:#ffffff;
+  --surface2:#f0f1f3;
+  --border:#e2e4e9;
+  --border2:#c8cad0;
+  --nav:#1a1a2e;
+  --nav2:#16213e;
+  --primary:#7c3aed;
+  --primary-light:#ede9fe;
+  --primary-mid:#ddd6fe;
+  --text:#111827;
+  --text2:#4b5563;
+  --text3:#9ca3af;
+  --red:#dc2626;--red-bg:#fef2f2;--red-border:#fecaca;
+  --amber:#d97706;--amber-bg:#fffbeb;--amber-border:#fde68a;
+  --green:#059669;--green-bg:#ecfdf5;--green-border:#a7f3d0;
+  --blue:#2563eb;--blue-bg:#eff6ff;--blue-border:#bfdbfe;
+  --mono:'Courier New',monospace;
+  --body:'Inter',sans-serif;
+  --radius:8px;
+  --radius-lg:12px;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--body);min-height:100vh;font-size:14px;}
 
-/* Header */
-header{padding:28px 0 0;display:flex;align-items:center;justify-content:space-between;}
-.logo{display:flex;align-items:center;gap:10px;}
-.logo-icon{width:32px;height:32px;border:1.5px solid var(--accent);border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:16px;}
-.logo-name{font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:-0.02em;}
-.logo-name span{color:var(--accent);}
-.header-badge{font-family:var(--mono);font-size:10px;color:var(--accent);background:var(--accent-dim);border:1px solid rgba(0,229,160,0.3);padding:4px 10px;border-radius:20px;letter-spacing:0.08em;text-transform:uppercase;}
+/* ── Nav ────────────────────────────────────────────────────────── */
+nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,0.3);}
+.nav-logo{display:flex;align-items:center;gap:8px;}
+.nav-logo-icon{width:26px;height:26px;border:1.5px solid #7c3aed;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#a78bfa;font-size:13px;}
+.nav-brand{font-weight:600;font-size:15px;color:#fff;letter-spacing:-0.01em;}
+.nav-brand span{color:#a78bfa;}
+.nav-right{display:flex;align-items:center;gap:8px;}
+.nav-pill{font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;font-family:var(--body);transition:all 0.15s;}
+.nav-pill.outline{border:1px solid rgba(167,139,250,0.4);color:#a78bfa;background:transparent;}
+.nav-pill.outline:hover{background:rgba(167,139,250,0.1);}
+.nav-pill.filled{background:#7c3aed;color:#fff;border:1px solid #7c3aed;}
+.nav-pill.filled:hover{background:#6d28d9;}
+.nav-status{display:flex;align-items:center;gap:6px;margin-right:8px;}
+.nav-dot{width:7px;height:7px;border-radius:50%;}
+.nav-dot.loading{background:#f59e0b;animation:blink 1s infinite;}
+.nav-dot.ready{background:#10b981;}
+.nav-dot.error{background:#ef4444;}
+.nav-status-text{font-size:11px;color:#9ca3af;font-family:var(--mono);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
 
-/* Hero */
-.hero{padding:64px 0 40px;text-align:center;}
-.hero-tag{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:24px;border:1px solid var(--border2);padding:6px 14px;border-radius:20px;background:var(--surface);}
-.hero-tag::before{content:'';width:6px;height:6px;background:var(--accent);border-radius:50%;animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
-h1{font-family:var(--display);font-size:clamp(34px,6vw,60px);font-weight:800;line-height:1.05;letter-spacing:-0.03em;margin-bottom:16px;}
-h1 em{font-style:normal;color:var(--accent);}
-.hero-sub{font-size:15px;color:var(--text2);max-width:480px;margin:0 auto 40px;line-height:1.7;font-weight:300;}
+/* ── App layout ─────────────────────────────────────────────────── */
+.app{display:grid;grid-template-columns:300px 1fr;min-height:calc(100vh - 52px);}
 
-/* Status */
-.data-status{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:32px;}
-.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-.status-dot.loading{background:var(--amber);animation:pulse 1.2s infinite;}
-.status-dot.ready{background:var(--accent);}
-.status-dot.error{background:var(--red);}
-.status-text{font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:0.06em;}
+/* ── Left panel ─────────────────────────────────────────────────── */
+.left-panel{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.left-inner{padding:16px;flex:1;}
 
-/* Search card */
-.search-card{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:32px;position:relative;overflow:hidden;}
-.search-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0.6;}
-.search-label{font-family:var(--mono);font-size:11px;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;display:block;}
-.search-row{display:flex;gap:12px;margin-bottom:16px;}
-.search-input{flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:14px 18px;font-family:var(--body);font-size:16px;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
-.search-input::placeholder{color:var(--text3);}
-.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
-.search-input:disabled{opacity:0.4;cursor:not-allowed;}
-.search-btn{background:var(--accent);color:#000;border:none;border-radius:10px;padding:14px 28px;font-family:var(--display);font-size:14px;font-weight:700;cursor:pointer;transition:opacity 0.15s,transform 0.15s;white-space:nowrap;}
-.search-btn:hover:not(:disabled){opacity:0.88;transform:translateY(-1px);}
-.search-btn:disabled{opacity:0.35;cursor:not-allowed;}
-.search-options{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;align-items:center;}
-.opt-label{font-family:var(--mono);font-size:11px;color:var(--text2);letter-spacing:0.06em;margin-right:4px;}
-.opt-btn{background:var(--bg);border:1px solid var(--border2);border-radius:6px;padding:5px 12px;font-family:var(--mono);font-size:11px;color:var(--text2);cursor:pointer;transition:all 0.15s;}
-.opt-btn:hover{border-color:var(--accent);color:var(--accent);}
-.opt-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
-.quick-examples{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding-top:14px;border-top:1px solid var(--border);}
-.qe-label{font-family:var(--mono);font-size:11px;color:var(--text3);}
-.qe-btn{background:transparent;border:1px dashed var(--border2);border-radius:6px;padding:4px 10px;font-family:var(--mono);font-size:11px;color:var(--text3);cursor:pointer;transition:all 0.15s;}
-.qe-btn:hover{border-color:var(--accent);color:var(--accent);border-style:solid;}
+/* Type selector */
+.type-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.type-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:16px;}
+.type-btn{padding:7px 4px;border:1px solid var(--border2);border-radius:6px;font-size:11px;font-weight:500;color:var(--text2);background:var(--bg);cursor:pointer;text-align:center;transition:all 0.15s;line-height:1.2;}
+.type-btn:hover{border-color:var(--primary);color:var(--primary);}
+.type-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
 
-/* Results */
-#results{margin-top:28px;}
-.result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
-.result-title{font-family:var(--mono);font-size:11px;color:var(--text2);letter-spacing:0.1em;text-transform:uppercase;}
-.result-meta{font-family:var(--mono);font-size:11px;color:var(--text3);}
-.summary-banner{border-radius:12px;padding:18px 22px;margin-bottom:16px;border:1px solid;display:flex;align-items:center;gap:16px;}
-.summary-banner.clear  {background:var(--accent-dim);border-color:rgba(0,229,160,0.3);}
-.summary-banner.hit    {background:var(--red-dim);   border-color:rgba(255,77,77,0.3);}
-.summary-banner.partial{background:var(--amber-dim); border-color:rgba(255,179,71,0.3);}
-.banner-icon{font-size:26px;flex-shrink:0;line-height:1;}
-.banner-title{font-family:var(--display);font-size:17px;font-weight:700;margin-bottom:3px;}
-.summary-banner.clear   .banner-title{color:var(--accent);}
+/* Search fields */
+.field-group{margin-bottom:12px;}
+.field-label{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px;display:block;}
+.field-input{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:var(--radius);padding:9px 12px;font-family:var(--body);font-size:13px;color:var(--text);outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.field-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(124,58,237,0.12);}
+.field-input:disabled{opacity:0.4;cursor:not-allowed;}
+.field-input::placeholder{color:var(--text3);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+/* Score slider */
+.score-row{display:flex;align-items:center;gap:8px;}
+.score-slider{flex:1;accent-color:var(--primary);}
+.score-display{font-size:12px;font-weight:600;color:var(--primary);font-family:var(--mono);min-width:32px;text-align:right;}
+
+/* Advanced toggle */
+.adv-toggle{display:flex;align-items:center;gap:6px;padding:8px 0;cursor:pointer;font-size:12px;font-weight:500;color:var(--primary);user-select:none;border:none;background:none;width:100%;margin-bottom:4px;}
+.adv-toggle .adv-arrow{font-size:10px;transition:transform 0.2s;margin-left:auto;}
+.adv-toggle .adv-arrow.open{transform:rotate(180deg);}
+.adv-fields{display:none;}
+.adv-fields.open{display:block;}
+.adv-divider{height:1px;background:var(--border);margin:12px 0;}
+
+/* Search button */
+.search-btn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--radius);padding:10px;font-family:var(--body);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s;margin-top:4px;}
+.search-btn:hover:not(:disabled){background:#6d28d9;}
+.search-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.clear-btn{width:100%;background:transparent;color:var(--text3);border:1px solid var(--border);border-radius:var(--radius);padding:8px;font-family:var(--body);font-size:12px;cursor:pointer;transition:all 0.15s;margin-top:6px;}
+.clear-btn:hover{background:var(--bg);color:var(--text2);}
+
+/* Filter chips */
+.chips-area{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;min-height:4px;}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary-mid);}
+.chip-x{cursor:pointer;font-size:13px;line-height:1;opacity:0.7;}
+.chip-x:hover{opacity:1;}
+
+/* Search history */
+.history-section{border-top:1px solid var(--border);padding:12px 16px;}
+.history-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.history-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;transition:background 0.12s;}
+.history-item:hover{background:var(--bg);}
+.history-icon{font-size:12px;color:var(--text3);}
+.history-text{font-size:12px;color:var(--text2);flex:1;}
+.history-type{font-size:10px;color:var(--text3);font-family:var(--mono);}
+.history-empty{font-size:12px;color:var(--text3);font-style:italic;padding:4px 0;}
+
+/* ── Right panel ─────────────────────────────────────────────────── */
+.right-panel{display:flex;flex-direction:column;overflow-y:auto;}
+
+/* Context bar */
+.context-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;min-height:44px;}
+.ctx-item{display:flex;align-items:center;gap:5px;font-size:11px;}
+.ctx-label{color:var(--text3);font-weight:500;}
+.ctx-value{color:var(--text);font-weight:600;font-family:var(--mono);}
+.ctx-divider{width:1px;height:14px;background:var(--border);flex-shrink:0;}
+.ctx-empty{font-size:12px;color:var(--text3);font-style:italic;}
+
+/* Results area */
+.results-area{padding:16px 20px;flex:1;}
+
+/* Empty state */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;text-align:center;color:var(--text3);}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:0.4;}
+.empty-title{font-size:16px;font-weight:500;color:var(--text2);margin-bottom:6px;}
+.empty-sub{font-size:13px;color:var(--text3);}
+
+/* Loading */
+.loading-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:60vh;}
+.spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:12px;color:var(--text3);font-family:var(--mono);}
+
+/* Summary banner */
+.summary-banner{border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;border:1px solid;display:flex;align-items:flex-start;gap:10px;}
+.summary-banner.hit    {background:var(--red-bg);   border-color:var(--red-border);}
+.summary-banner.partial{background:var(--amber-bg); border-color:var(--amber-border);}
+.summary-banner.clear  {background:var(--green-bg); border-color:var(--green-border);}
+.banner-icon{font-size:18px;line-height:1;flex-shrink:0;}
+.banner-title{font-size:13px;font-weight:600;margin-bottom:2px;}
 .summary-banner.hit     .banner-title{color:var(--red);}
 .summary-banner.partial .banner-title{color:var(--amber);}
-.banner-desc{font-size:13px;color:var(--text2);line-height:1.5;}
+.summary-banner.clear   .banner-title{color:var(--green);}
+.banner-desc{font-size:12px;color:var(--text2);line-height:1.5;}
 
-/* Match cards */
-.match-card{background:var(--surface);border:1px solid var(--border2);border-radius:12px;margin-bottom:10px;overflow:hidden;}
-.mch{padding:14px 18px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:background 0.15s;}
-.mch:hover{background:var(--surface2);}
-.match-name{font-family:var(--display);font-size:15px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.badge{font-family:var(--mono);font-size:10px;padding:3px 7px;border-radius:4px;letter-spacing:0.05em;text-transform:uppercase;flex-shrink:0;border:1px solid;}
-.t-person      {background:rgba(120,100,255,0.15);color:#a89eff;border-color:rgba(120,100,255,0.3);}
-.t-organization{background:rgba(0,160,255,0.12); color:#5ab4ff;border-color:rgba(0,160,255,0.3);}
-.t-vessel      {background:rgba(255,179,71,0.12); color:var(--amber);border-color:rgba(255,179,71,0.3);}
-.t-airplane    {background:rgba(0,229,160,0.12);  color:var(--accent);border-color:rgba(0,229,160,0.3);}
-.t-other       {background:rgba(150,150,150,0.1); color:var(--text2);border-color:var(--border2);}
-.score-pill{font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid;flex-shrink:0;}
-.s-high{color:var(--red);  border-color:rgba(255,77,77,0.4);  background:var(--red-dim);}
-.s-med {color:var(--amber);border-color:rgba(255,179,71,0.4); background:var(--amber-dim);}
-.s-low {color:var(--text2);border-color:var(--border2);       background:var(--surface2);}
-.arrow{color:var(--text3);font-size:11px;transition:transform 0.2s;flex-shrink:0;}
-.arrow.open{transform:rotate(180deg);}
-.mbody{display:none;padding:0 18px 18px;border-top:1px solid var(--border);}
-.mbody.open{display:block;}
-.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:14px;}
-.dk{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px;}
-.dv{font-size:13px;color:var(--text);line-height:1.5;}
-.tag-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
-.atag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);color:var(--text2);}
-.ptag{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:4px;background:var(--red-dim);border:1px solid rgba(255,77,77,0.2);color:var(--red);}
+/* Result groups */
+.result-group{margin-bottom:20px;}
+.group-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid;}
+.group-header.high  {border-color:var(--red);}
+.group-header.medium{border-color:var(--amber);}
+.group-header.low   {border-color:var(--border2);}
+.group-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;}
+.group-header.high   .group-title{color:var(--red);}
+.group-header.medium .group-title{color:var(--amber);}
+.group-header.low    .group-title{color:var(--text3);}
+.group-count{font-size:11px;font-family:var(--mono);padding:2px 7px;border-radius:10px;font-weight:600;}
+.group-header.high   .group-count{background:var(--red-bg);color:var(--red);}
+.group-header.medium .group-count{background:var(--amber-bg);color:var(--amber);}
+.group-header.low    .group-count{background:var(--surface2);color:var(--text3);}
 
-/* Spinner */
-.loading{text-align:center;padding:48px 0;}
-.spinner{width:28px;height:28px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 14px;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.loading-text{font-family:var(--mono);font-size:12px;color:var(--text3);letter-spacing:0.06em;}
-.error-box{background:var(--red-dim);border:1px solid rgba(255,77,77,0.3);border-radius:10px;padding:14px 18px;font-family:var(--mono);font-size:12px;color:var(--red);line-height:1.7;}
+/* Result card */
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:8px;overflow:hidden;transition:box-shadow 0.15s;}
+.result-card:hover{box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.result-card.flagged{border-color:var(--amber-border);background:var(--amber-bg);}
+.card-main{padding:14px 16px;}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;}
+.card-name{font-size:14px;font-weight:600;color:var(--text);line-height:1.3;}
+.card-id{font-size:10px;color:var(--text3);font-family:var(--mono);margin-top:2px;}
+.card-badges{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.risk-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;letter-spacing:0.05em;}
+.risk-badge.HIGH  {background:var(--red-bg);  color:var(--red);  border:1px solid var(--red-border);}
+.risk-badge.MEDIUM{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border);}
+.risk-badge.LOW   {background:var(--surface2);color:var(--text3);border:1px solid var(--border);}
+.type-badge{font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid;font-weight:500;}
+.t-person      {background:rgba(124,58,237,0.08);color:#6d28d9;border-color:rgba(124,58,237,0.2);}
+.t-organization{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border);}
+.t-vessel      {background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border);}
+.t-airplane    {background:var(--green-bg);color:var(--green);border-color:var(--green-border);}
+.t-other       {background:var(--surface2);color:var(--text3);border-color:var(--border);}
 
-/* Stats strip */
-.stats-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:40px;}
-.stat-cell{background:var(--surface);padding:18px 20px;text-align:center;}
-.stat-num{font-family:var(--display);font-size:26px;font-weight:800;color:var(--accent);letter-spacing:-0.02em;margin-bottom:3px;}
-.stat-label{font-family:var(--mono);font-size:10px;color:var(--text3);letter-spacing:0.06em;text-transform:uppercase;}
+/* Confidence bar */
+.conf-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.conf-bar-wrap{flex:1;background:var(--surface2);border-radius:4px;height:6px;overflow:hidden;}
+.conf-bar-fill{height:100%;border-radius:4px;transition:width 0.4s ease;}
+.conf-bar-fill.high  {background:var(--red);}
+.conf-bar-fill.medium{background:var(--amber);}
+.conf-bar-fill.low   {background:var(--border2);}
+.conf-score{font-size:12px;font-weight:600;font-family:var(--mono);min-width:36px;text-align:right;}
+.conf-score.high  {color:var(--red);}
+.conf-score.medium{color:var(--amber);}
+.conf-score.low   {color:var(--text3);}
 
-/* Footer */
-footer{margin-top:56px;padding:28px 0 40px;border-top:1px solid var(--border);display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;}
-.footer-note{font-family:var(--mono);font-size:11px;color:var(--text3);line-height:1.7;max-width:460px;}
-.footer-note strong{color:var(--text2);}
-.audit-row{font-family:var(--mono);font-size:11px;color:var(--text3);text-align:right;}
+/* Card meta */
+.card-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+.meta-item{display:flex;align-items:center;gap:4px;font-size:11px;}
+.meta-label{color:var(--text3);font-weight:500;}
+.meta-value{color:var(--text2);font-weight:500;}
 
-@media(max-width:600px){
-  .search-row{flex-direction:column;}
-  .stats-strip{grid-template-columns:1fr;}
-  footer{flex-direction:column;}
-  .audit-row{text-align:left;}
-}
+/* Card actions */
+.card-actions{display:flex;gap:6px;padding-top:10px;border-top:1px solid var(--border);}
+.action-btn{font-size:11px;padding:5px 10px;border-radius:5px;cursor:pointer;font-family:var(--body);font-weight:500;transition:all 0.15s;border:1px solid;}
+.action-btn.detail{background:transparent;color:var(--primary);border-color:rgba(124,58,237,0.3);}
+.action-btn.detail:hover{background:var(--primary-light);}
+.action-btn.fp{background:transparent;color:var(--amber);border-color:var(--amber-border);}
+.action-btn.fp:hover{background:var(--amber-bg);}
+.action-btn.fp.active{background:var(--amber-bg);color:var(--amber);font-weight:600;}
+.action-btn.case{background:transparent;color:var(--green);border-color:var(--green-border);}
+.action-btn.case:hover{background:var(--green-bg);}
+.case-id-display{font-size:10px;color:var(--green);font-family:var(--mono);padding:5px 8px;background:var(--green-bg);border:1px solid var(--green-border);border-radius:5px;display:none;}
+.case-id-display.show{display:flex;align-items:center;gap:4px;}
+
+/* Explain section */
+.explain-section{display:none;padding:12px 16px;background:var(--bg);border-top:1px solid var(--border);}
+.explain-section.open{display:block;}
+.explain-title{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.explain-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.explain-stat{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:8px 10px;text-align:center;}
+.explain-stat-num{font-size:16px;font-weight:600;font-family:var(--mono);color:var(--primary);}
+.explain-stat-label{font-size:10px;color:var(--text3);margin-top:2px;}
+.reasons-list{display:flex;flex-wrap:wrap;gap:4px;}
+.reason-chip{font-size:11px;padding:3px 8px;border-radius:4px;background:var(--primary-light);color:var(--primary);border:1px solid var(--primary-mid);}
+.reason-chip.negative{background:var(--red-bg);color:var(--red);border-color:var(--red-border);}
+
+/* Aliases & Programs */
+.tags-section{margin-top:8px;}
+.tags-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;}
+.tags-row{display:flex;flex-wrap:wrap;gap:4px;}
+.alias-tag{font-size:10px;padding:2px 6px;border-radius:3px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-family:var(--mono);}
+.prog-tag{font-size:10px;padding:2px 6px;border-radius:3px;background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);font-family:var(--mono);}
+
+/* Country lookup */
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header>
-    <div class="logo">
-      <div class="logo-icon">◈</div>
-      <span class="logo-name">Sanction<span>Check</span></span>
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-icon">◈</div>
+    <span class="nav-brand">Sanction<span>Check</span></span>
+  </div>
+  <div class="nav-right">
+    <div class="nav-status">
+      <div class="nav-dot loading" id="navDot"></div>
+      <span class="nav-status-text" id="navStatus">Loading…</span>
     </div>
-    <span class="header-badge">Free · No sign-up needed</span>
-  </header>
+    <button class="nav-pill outline">Sign in</button>
+    <button class="nav-pill filled">Free Account</button>
+  </div>
+</nav>
 
-  <section class="hero">
-    <div class="hero-tag">Powered by US Treasury OFAC data</div>
-    <h1>Instant <em>sanctions</em><br>screening tool</h1>
-    <p class="hero-sub">Screen individuals, companies, and vessels against the official US OFAC SDN list. Free, no sign-up, no API key required.</p>
-    <div class="data-status">
-      <div class="status-dot loading" id="statusDot"></div>
-      <span class="status-text" id="statusText">Loading OFAC SDN data…</span>
-    </div>
-  </section>
+<div class="app">
 
-  <div class="search-card">
-    <span class="search-label">Screen an entity</span>
-    <div class="search-row">
-      <input type="text" id="searchInput" class="search-input"
-             placeholder="Enter full name, company, vessel…"
-             autocomplete="off" disabled/>
-      <button class="search-btn" id="searchBtn" onclick="runSearch()" disabled>Screen →</button>
+  <!-- LEFT PANEL -->
+  <div class="left-panel">
+    <div class="left-inner">
+
+      <!-- Type selector -->
+      <div class="type-label">Search by type</div>
+      <div class="type-grid">
+        <button class="type-btn active" data-type="all"          onclick="setType(this)">All</button>
+        <button class="type-btn"        data-type="Person"       onclick="setType(this)">Individual</button>
+        <button class="type-btn"        data-type="Organization" onclick="setType(this)">Entity</button>
+        <button class="type-btn"        data-type="Vessel"       onclick="setType(this)">Vessel</button>
+        <button class="type-btn"        data-type="Airplane"     onclick="setType(this)">Aircraft</button>
+        <button class="type-btn"        data-type="Crypto"       onclick="setType(this)">Crypto</button>
+      </div>
+
+      <!-- Dynamic fields -->
+      <div id="dynamicFields"></div>
+
+      <!-- Min score -->
+      <div class="field-group" id="scoreGroup">
+        <label class="field-label">Minimum match score</label>
+        <div class="score-row">
+          <input type="range" class="score-slider" id="minScore" min="50" max="100" value="65" step="1"
+                 oninput="document.getElementById('scoreVal').textContent=this.value+'%'"/>
+          <span class="score-display" id="scoreVal">65%</span>
+        </div>
+      </div>
+
+      <!-- Active filter chips -->
+      <div class="chips-area" id="chipsArea"></div>
+
+      <!-- Buttons -->
+      <button class="search-btn" id="searchBtn" onclick="runSearch()" disabled>Search</button>
+      <button class="clear-btn" onclick="clearAll()">Clear all</button>
+
     </div>
-    <div class="search-options">
-      <span class="opt-label">Type:</span>
-      <button class="opt-btn active" data-type="all"         onclick="setType(this)">All types</button>
-      <button class="opt-btn"        data-type="Person"      onclick="setType(this)">Individual</button>
-      <button class="opt-btn"        data-type="Organization"onclick="setType(this)">Entity</button>
-      <button class="opt-btn"        data-type="Vessel"      onclick="setType(this)">Vessel</button>
-    </div>
-    <div class="quick-examples">
-      <span class="qe-label">Try:</span>
-      <button class="qe-btn" onclick="tryExample('Nicolas Maduro')">Nicolas Maduro</button>
-      <button class="qe-btn" onclick="tryExample('Al-Rashid Bank')">Al-Rashid Bank</button>
-      <button class="qe-btn" onclick="tryExample('Kim Jong Un')">Kim Jong Un</button>
-      <button class="qe-btn" onclick="tryExample('John Smith')">John Smith (clean)</button>
+
+    <!-- Search history -->
+    <div class="history-section">
+      <div class="history-label">Recent searches</div>
+      <div id="historyList"><div class="history-empty">No recent searches</div></div>
     </div>
   </div>
 
-  <div id="results"></div>
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
 
-  <div class="stats-strip">
-    <div class="stat-cell">
-      <div class="stat-num" id="statCount">—</div>
-      <div class="stat-label">SDN targets loaded</div>
+    <!-- Context bar -->
+    <div class="context-bar" id="contextBar">
+      <span class="ctx-empty">Run a search to see results</span>
     </div>
-    <div class="stat-cell">
-      <div class="stat-num">Daily</div>
-      <div class="stat-label">Data refresh</div>
+
+    <!-- Results -->
+    <div class="results-area" id="resultsArea">
+      <div class="empty-state">
+        <div class="empty-icon">⚖</div>
+        <div class="empty-title">Screening Tool</div>
+        <div class="empty-sub">Select a search type, enter details and click Search</div>
+      </div>
     </div>
-    <div class="stat-cell">
-      <div class="stat-num">Fuzzy</div>
-      <div class="stat-label">Name matching</div>
-    </div>
+
   </div>
-
-  <footer>
-    <div class="footer-note">
-      <strong>Data source:</strong> US Treasury OFAC SDN list, updated daily.<br>
-      <strong>Disclaimer:</strong> This tool is a screening aid only. Always verify hits with a qualified compliance professional before taking action.
-    </div>
-    <div class="audit-row">
-      <div id="timestamp">—</div>
-      <div style="margin-top:4px">Source: treasury.gov</div>
-      <div style="margin-top:4px">© 2026 SanctionCheck</div>
-    </div>
-  </footer>
-
 </div>
 
 <script>
-// ── State ──────────────────────────────────────────────────────────────
-let sdnData = []
-let selectedType = 'all'
-
-// ── Load data ──────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', loadData)
-
-async function loadData() {
-  setStatus('loading', 'Loading OFAC SDN data…')
-  try {
-    const res = await fetch('/sdn.json')
-    if (!res.ok) throw new Error('HTTP ' + res.status)
-    const data = await res.json()
-    sdnData = data.records || []
-    const count = sdnData.length.toLocaleString()
-    setStatus('ready', count + ' SDN targets loaded · Updated daily from treasury.gov')
-    document.getElementById('statCount').textContent = count
-    document.getElementById('searchInput').disabled = false
-    document.getElementById('searchBtn').disabled   = false
-    document.getElementById('searchInput').focus()
-  } catch(e) {
-    setStatus('error', 'Failed to load data: ' + e.message)
-  }
+// ── Country codes ──────────────────────────────────────────────────
+const COUNTRIES = {
+  AF:'Afghanistan',AL:'Albania',DZ:'Algeria',AO:'Angola',AR:'Argentina',AM:'Armenia',
+  AZ:'Azerbaijan',BH:'Bahrain',BY:'Belarus',BA:'Bosnia and Herzegovina',BR:'Brazil',
+  KH:'Cambodia',CM:'Cameroon',CF:'Central African Republic',CN:'China',CO:'Colombia',
+  CD:'Congo (DRC)',CU:'Cuba',EG:'Egypt',ER:'Eritrea',ET:'Ethiopia',
+  GE:'Georgia',GH:'Ghana',GN:'Guinea',HT:'Haiti',HK:'Hong Kong',
+  IN:'India',ID:'Indonesia',IR:'Iran',IQ:'Iraq',KZ:'Kazakhstan',
+  KE:'Kenya',KP:'North Korea',KW:'Kuwait',KG:'Kyrgyzstan',LB:'Lebanon',
+  LR:'Liberia',LY:'Libya',MK:'Macedonia',ML:'Mali',MR:'Mauritania',
+  MX:'Mexico',MD:'Moldova',MN:'Mongolia',ME:'Montenegro',MA:'Morocco',
+  MZ:'Mozambique',MM:'Myanmar',NA:'Namibia',NI:'Nicaragua',NE:'Niger',
+  NG:'Nigeria',PK:'Pakistan',PA:'Panama',PY:'Paraguay',PE:'Peru',
+  PH:'Philippines',RU:'Russia',RW:'Rwanda',SA:'Saudi Arabia',SN:'Senegal',
+  RS:'Serbia',SL:'Sierra Leone',SO:'Somalia',ZA:'South Africa',SS:'South Sudan',
+  SD:'Sudan',SY:'Syria',TJ:'Tajikistan',TZ:'Tanzania',TH:'Thailand',
+  TG:'Togo',TT:'Trinidad and Tobago',TN:'Tunisia',TM:'Turkmenistan',
+  UA:'Ukraine',AE:'United Arab Emirates',UG:'Uganda',UZ:'Uzbekistan',
+  VE:'Venezuela',VN:'Vietnam',YE:'Yemen',ZW:'Zimbabwe',
+  US:'United States',GB:'United Kingdom',FR:'France',DE:'Germany',
+  IT:'Italy',ES:'Spain',JP:'Japan',KR:'South Korea',
 }
+function countryName(code){return COUNTRIES[code]||code||'—'}
 
-function setStatus(state, text) {
-  document.getElementById('statusDot').className = 'status-dot ' + state
-  document.getElementById('statusText').textContent = text
-}
+// ── State ──────────────────────────────────────────────────────────
+let sdnData=[], selectedType='all', searchHistory=[], caseCounter=1000
 
-// ── UI helpers ─────────────────────────────────────────────────────────
-function setType(btn) {
-  document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('active'))
-  btn.classList.add('active')
-  selectedType = btn.dataset.type
-}
-
-function tryExample(name) {
-  document.getElementById('searchInput').value = name
-  runSearch()
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('searchInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') runSearch()
-  })
+// ── Boot ───────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  renderFields('all')
+  loadHistory()
+  loadData()
 })
 
-// ── Fuzzy matching ─────────────────────────────────────────────────────
-function norm(s) {
-  return (s || '').toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim()
+async function loadData(){
+  try{
+    const res=await fetch('/sdn.json')
+    if(!res.ok)throw new Error('HTTP '+res.status)
+    const data=await res.json()
+    sdnData=data.records||[]
+    setNavStatus('ready',sdnData.length.toLocaleString()+' SDN records loaded')
+    document.getElementById('searchBtn').disabled=false
+  }catch(e){
+    setNavStatus('error','Failed to load data')
+  }
 }
 
-function levenshtein(a, b) {
-  const m = a.length, n = b.length
-  const dp = Array.from({length: m+1}, (_, i) =>
-    Array.from({length: n+1}, (_, j) => i === 0 ? j : j === 0 ? i : 0))
-  for (let i = 1; i <= m; i++)
-    for (let j = 1; j <= n; j++)
-      dp[i][j] = a[i-1] === b[j-1]
-        ? dp[i-1][j-1]
-        : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
-  return dp[m][n]
+function setNavStatus(state,text){
+  document.getElementById('navDot').className='nav-dot '+state
+  document.getElementById('navStatus').textContent=text
 }
 
-function similarity(a, b) {
-  a = a.trim(); b = b.trim()
-  if (!a && !b) return 100
-  if (!a || !b) return 0
-  return Math.round((1 - levenshtein(a, b) / Math.max(a.length, b.length)) * 100)
+// ── Field templates ────────────────────────────────────────────────
+const FIELDS={
+  all:{
+    basic:[{id:'q_name',label:'Name',placeholder:'Full name, company, or vessel…'}],
+    advanced:[
+      {id:'q_city',label:'City',placeholder:'e.g. Moscow'},
+      {id:'q_state',label:'State / Province',placeholder:'e.g. California'},
+      {id:'q_country',label:'Country code',placeholder:'e.g. RU, IR, VE'},
+      {id:'q_id',label:'ID Number',placeholder:'Any ID number'},
+    ]
+  },
+  Person:{
+    basic:[{id:'q_name',label:'Full name',placeholder:'e.g. Nicolas Maduro'}],
+    advanced:[
+      {id:'q_dob',label:'Date of birth',placeholder:'YYYY-MM-DD',type:'date'},
+      {id:'q_city',label:'City',placeholder:'e.g. Caracas'},
+      {id:'q_state',label:'State / Province',placeholder:''},
+      {id:'q_country',label:'Country code',placeholder:'e.g. VE'},
+      {id:'q_id',label:'ID Number (Passport / National ID)',placeholder:''},
+    ]
+  },
+  Organization:{
+    basic:[{id:'q_name',label:'Entity name',placeholder:'e.g. Al-Rashid Bank'}],
+    advanced:[
+      {id:'q_doi',label:'Date of incorporation',placeholder:'YYYY-MM-DD',type:'date'},
+      {id:'q_dor',label:'Date of registration',placeholder:'YYYY-MM-DD',type:'date'},
+      {id:'q_city',label:'City',placeholder:''},
+      {id:'q_state',label:'State / Province',placeholder:''},
+      {id:'q_country',label:'Country code',placeholder:'e.g. IQ'},
+      {id:'q_id',label:'Business registration number',placeholder:''},
+      {id:'q_website',label:'Website',placeholder:'e.g. example.com'},
+    ]
+  },
+  Vessel:{
+    basic:[
+      {id:'q_name',label:'Vessel name',placeholder:'e.g. ARCTIC SEA'},
+      {id:'q_imo',label:'IMO Number',placeholder:'e.g. IMO 1234567'},
+    ],
+    advanced:[
+      {id:'q_mmsi',label:'MMSI',placeholder:'Maritime Mobile Service Identity'},
+      {id:'q_hull',label:'Hull Identification Number',placeholder:''},
+    ]
+  },
+  Airplane:{
+    basic:[
+      {id:'q_name',label:'Aircraft name',placeholder:'e.g. Boeing 737'},
+      {id:'q_icao',label:'ICAO Identifier',placeholder:'e.g. N123AB'},
+    ],
+    advanced:[
+      {id:'q_modes',label:'Mode S Transponder Code',placeholder:''},
+      {id:'q_tail',label:'Tail Number / Registration',placeholder:'e.g. N-12345'},
+    ]
+  },
+  Crypto:{
+    basic:[{id:'q_crypto',label:'Wallet address',placeholder:'BTC / ETH / other address…'}],
+    advanced:[]
+  }
 }
 
-function tokenSetScore(a, b) {
-  const ta = new Set(norm(a).split(' ').filter(Boolean))
-  const tb = new Set(norm(b).split(' ').filter(Boolean))
-  if (!ta.size || !tb.size) return 0
-  const inter = new Set([...ta].filter(t => tb.has(t)))
-  const si  = [...inter].sort().join(' ')
-  const la  = [...ta].filter(t => !inter.has(t)).sort().join(' ')
-  const lb  = [...tb].filter(t => !inter.has(t)).sort().join(' ')
-  return Math.max(
-    similarity(si, si + ' ' + la),
-    similarity(si, si + ' ' + lb),
-    similarity(si + ' ' + la, si + ' ' + lb)
-  )
+function renderFields(type){
+  const cfg=FIELDS[type]||FIELDS['all']
+  let html=''
+  cfg.basic.forEach(f=>{
+    html+=`<div class="field-group">
+      <label class="field-label" for="${f.id}">${f.label}</label>
+      <input class="field-input" id="${f.id}" type="${f.type||'text'}" placeholder="${f.placeholder}" autocomplete="off"/>
+    </div>`
+  })
+  if(cfg.advanced.length){
+    html+=`<button class="adv-toggle" onclick="toggleAdv(this)">
+      Advanced search
+      <span class="adv-arrow">▾</span>
+    </button>
+    <div class="adv-fields" id="advFields">`
+    // pair fields into rows of 2 where sensible
+    const adv=cfg.advanced
+    let i=0
+    while(i<adv.length){
+      const f=adv[i]
+      const next=adv[i+1]
+      const isDate=f.type==='date'
+      const nextDate=next&&next.type==='date'
+      if(!isDate&&next&&!nextDate&&adv.length>2){
+        html+=`<div class="field-row">
+          <div class="field-group">
+            <label class="field-label" for="${f.id}">${f.label}</label>
+            <input class="field-input" id="${f.id}" type="${f.type||'text'}" placeholder="${f.placeholder}" autocomplete="off"/>
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="${next.id}">${next.label}</label>
+            <input class="field-input" id="${next.id}" type="${next.type||'text'}" placeholder="${next.placeholder}" autocomplete="off"/>
+          </div>
+        </div>`
+        i+=2
+      } else {
+        html+=`<div class="field-group">
+          <label class="field-label" for="${f.id}">${f.label}</label>
+          <input class="field-input" id="${f.id}" type="${f.type||'text'}" placeholder="${f.placeholder}" autocomplete="off"/>
+        </div>`
+        i++
+      }
+    }
+    html+=`</div>`
+  }
+  document.getElementById('dynamicFields').innerHTML=html
+  // Enter key
+  document.querySelectorAll('.field-input').forEach(inp=>{
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')runSearch()})
+  })
 }
 
-function bestAliasScore(query, aliases) {
-  if (!aliases || !aliases.length) return 0
-  return aliases.reduce((best, alias) => {
-    const s = tokenSetScore(query, alias)
-    return s > best ? s : best
-  }, 0)
+function toggleAdv(btn){
+  const panel=document.getElementById('advFields')
+  const arrow=btn.querySelector('.adv-arrow')
+  panel.classList.toggle('open')
+  arrow.classList.toggle('open')
 }
 
-function search(query) {
-  if (!query || !sdnData.length) return []
-  const results = []
-  for (const row of sdnData) {
-    const rowType = (row.type || '').toLowerCase()
-    if (selectedType !== 'all' && rowType !== selectedType.toLowerCase()) continue
-    const nameScore  = tokenSetScore(query, row.name)
-    const aliasScore = bestAliasScore(query, row.aliases)
-    const score = Math.max(nameScore, aliasScore)
-    if (score >= 60) {
-      results.push({ score, row, matchedOn: aliasScore > nameScore ? 'alias' : 'name' })
+function setType(btn){
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'))
+  btn.classList.add('active')
+  selectedType=btn.dataset.type
+  renderFields(selectedType)
+  updateChips()
+}
+
+// ── Filter chips ───────────────────────────────────────────────────
+function updateChips(){
+  const chips=[]
+  if(selectedType!=='all'&&selectedType!=='Crypto'){
+    const typeLabels={Person:'Individual',Organization:'Entity',Vessel:'Vessel',Airplane:'Aircraft'}
+    chips.push({label:'Type: '+typeLabels[selectedType],key:'type'})
+  }
+  const country=getVal('q_country')
+  if(country)chips.push({label:'Country: '+country.toUpperCase(),key:'country'})
+  const dob=getVal('q_dob')
+  if(dob)chips.push({label:'DOB: '+dob,key:'dob'})
+
+  const area=document.getElementById('chipsArea')
+  area.innerHTML=chips.map(c=>
+    `<span class="chip">${c.label}<span class="chip-x" onclick="removeChip('${c.key}')">×</span></span>`
+  ).join('')
+}
+
+function removeChip(key){
+  if(key==='type'){
+    document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'))
+    document.querySelector('[data-type="all"]').classList.add('active')
+    selectedType='all'
+    renderFields('all')
+  }
+  if(key==='country'){const el=document.getElementById('q_country');if(el)el.value=''}
+  if(key==='dob'){const el=document.getElementById('q_dob');if(el)el.value=''}
+  updateChips()
+}
+
+function getVal(id){
+  const el=document.getElementById(id)
+  return el?el.value.trim():''
+}
+
+// ── Matching algorithm ─────────────────────────────────────────────
+function normalize(str){
+  return (str||'').toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Z0-9 ]/g,"").trim()
+}
+function normalizeArabic(s){
+  return s.replace(/\b(MOHAMED|MOHAMMAD|MUHAMED|MOHAMMED)\b/g,"MUHAMMAD").replace(/\bABD AL\b/g,"ABDUL")
+}
+function normalizeRussian(s){
+  return s.replace(/\b(\w{5,})(OVA|OV|EVA|EV|INA|IN|SKAYA|SKY)\b/g,"$1")
+}
+function normalizeInput(name){
+  let s=normalize(name);s=normalizeArabic(s);s=normalizeRussian(s);return s
+}
+function tokenize(name){return normalizeInput(name).split(/\s+/).filter(Boolean)}
+function levenshtein(a,b){
+  const dp=Array.from({length:b.length+1},(_,j)=>Array.from({length:a.length+1},(_,i)=>j===0?i:i===0?j:0))
+  for(let j=1;j<=b.length;j++)
+    for(let i=1;i<=a.length;i++)
+      dp[j][i]=a[i-1]===b[j-1]?dp[j-1][i-1]:1+Math.min(dp[j-1][i-1],dp[j][i-1],dp[j-1][i])
+  return dp[b.length][a.length]
+}
+function similarity(a,b){
+  const max=Math.max(a.length,b.length)
+  return max===0?100:((max-levenshtein(a,b))/max)*100
+}
+function soundex(s){
+  const map={B:1,F:1,P:1,V:1,C:2,G:2,J:2,K:2,Q:2,S:2,X:2,Z:2,D:3,T:3,L:4,M:5,N:5,R:6}
+  s=normalize(s).replace(/\s/g,'')
+  if(!s)return'0000'
+  let result=s[0],prev=map[s[0]]||0
+  for(let i=1;i<s.length&&result.length<4;i++){
+    const code=map[s[i]]||0
+    if(code&&code!==prev){result+=code;prev=code}
+    else if(!code)prev=0
+  }
+  return result.padEnd(4,'0')
+}
+function generateVariants(tokens){
+  const v=[]
+  v.push(tokens.join(' '))
+  if(tokens.length>=2){v.push(tokens[0]+' '+tokens[tokens.length-1]);v.push(tokens[tokens.length-1]+' '+tokens[0])}
+  if(tokens.length>=3){v.push(tokens[0]+' '+tokens[tokens.length-2]+' '+tokens[tokens.length-1]);v.push(tokens.slice(-2).join(' '));v.push(tokens.slice(0,2).join(' '))}
+  return [...new Set(v)]
+}
+function matchEntity(input,entity){
+  const iNorm=normalizeInput(input.name),tNorm=normalizeInput(entity.name)
+  const iTokens=tokenize(input.name),tTokens=tokenize(entity.name)
+  if(iNorm===tNorm)return{score:100,risk:'HIGH',reasons:['Exact full match'],nameScore:100,aliasScore:0,contextScore:0}
+  let total=0,reasons=[],nameScore=0,aliasScore=0,contextScore=0
+  // Variants
+  const iV=generateVariants(iTokens),tV=generateVariants(tTokens)
+  let vs=0
+  iV.forEach(iv=>tV.forEach(tv=>{
+    const sim=similarity(iv,tv)
+    if(sim>92){vs+=25;reasons.push('Strong variant match')}
+    else if(sim>80){vs+=15;reasons.push('Fuzzy variant match')}
+  }))
+  nameScore+=Math.min(vs,50);total+=Math.min(vs,50)
+  // Tokens
+  let ts=0
+  iTokens.forEach(iw=>tTokens.forEach(tw=>{
+    const sim=similarity(iw,tw)
+    if(sim>92){ts+=12;reasons.push('Token exact: '+iw)}
+    else if(sim>80){ts+=7;reasons.push('Token fuzzy: '+iw)}
+    if(soundex(iw)===soundex(tw)&&sim<=92){ts+=5;reasons.push('Phonetic match: '+iw)}
+  }))
+  nameScore+=Math.min(ts,30);total+=Math.min(ts,30)
+  // Last name
+  if(iTokens.length&&tTokens.length){
+    const sim=similarity(iTokens[iTokens.length-1],tTokens[tTokens.length-1])
+    if(sim>92){total+=20;nameScore+=20;reasons.push('Last name exact match')}
+    else if(sim>80){total+=10;nameScore+=10;reasons.push('Last name fuzzy match')}
+    else{total-=15;reasons.push('Last name mismatch')}
+  }
+  // Aliases
+  let as2=0
+  ;(entity.aliases||[]).forEach(alias=>{
+    const sim=similarity(iNorm,normalizeInput(alias))
+    if(sim>90){as2+=20;reasons.push('Alias match: '+alias)}
+    else if(sim>80){as2+=10;reasons.push('Alias fuzzy: '+alias)}
+  })
+  aliasScore=Math.min(as2,20);total+=aliasScore
+  // Context
+  if(input.dob&&entity.dob){
+    if(input.dob===entity.dob){contextScore+=40;total+=40;reasons.push('Date of birth exact match')}
+    else{contextScore-=20;total-=20;reasons.push('Date of birth mismatch')}
+  }
+  if(input.country){
+    const uc=input.country.toUpperCase()
+    if((entity.countries||[]).some(c=>c.toUpperCase()===uc)){
+      contextScore+=15;total+=15;reasons.push('Country match')
+    } else if((entity.countries||[]).length){
+      reasons.push('Country mismatch')
     }
   }
-  return results.sort((a, b) => b.score - a.score).slice(0, 10)
+  total=Math.max(0,Math.min(100,total))
+  const risk=total>=85?'HIGH':total>=70?'MEDIUM':'LOW'
+  return{score:Math.round(total),risk,reasons,nameScore:Math.min(100,Math.round(nameScore)),aliasScore:Math.min(100,Math.round(aliasScore)),contextScore:Math.min(100,Math.round(Math.abs(contextScore)))}
 }
 
-// ── Run search ─────────────────────────────────────────────────────────
-function runSearch() {
-  const query = document.getElementById('searchInput').value.trim()
-  if (!query) return
-  if (!sdnData.length) { showError('Data still loading. Please wait.'); return }
+// ── Search ─────────────────────────────────────────────────────────
+function runSearch(){
+  const query=getVal('q_name')||getVal('q_crypto')||getVal('q_imo')||getVal('q_icao')
+  if(!query){alert('Please enter a search term.');return}
+  if(!sdnData.length){alert('Data still loading. Please wait.');return}
 
-  document.getElementById('results').innerHTML = `
-    <div class="loading">
+  const minScore=parseInt(document.getElementById('minScore').value)
+  const filterCountry=getVal('q_country').toUpperCase()
+  const filterDob=getVal('q_dob')
+  const input={name:query,dob:filterDob||null,country:filterCountry||null}
+
+  // Show loading
+  document.getElementById('resultsArea').innerHTML=`
+    <div class="loading-state">
       <div class="spinner"></div>
       <div class="loading-text">Scanning ${sdnData.length.toLocaleString()} SDN records…</div>
     </div>`
+  updateChips()
 
-  setTimeout(() => {
-    const hits = search(query)
-    renderResults(hits, query)
-    const now = new Date()
-    document.getElementById('timestamp').textContent =
-      'Screened: ' + now.toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}) +
-      ' ' + now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})
-  }, 30)
+  const t0=performance.now()
+  setTimeout(()=>{
+    const results=[]
+    for(const row of sdnData){
+      if(selectedType!=='all'&&selectedType!=='Crypto'){
+        const rt=(row.type||'').toLowerCase()
+        if(rt!==selectedType.toLowerCase())continue
+      }
+      if(filterCountry&&!(row.countries||[]).some(c=>c.toUpperCase()===filterCountry))continue
+
+      const match=matchEntity(input,row)
+      if(match.score>=minScore)results.push({...match,row})
+    }
+    results.sort((a,b)=>b.score-a.score)
+    const elapsed=Math.round(performance.now()-t0)
+
+    addHistory(query,selectedType,results.length)
+    updateContextBar(query,selectedType,filterCountry,elapsed,results.length)
+    renderResults(results,query)
+  },30)
 }
 
-// ── Render results ─────────────────────────────────────────────────────
-function renderResults(hits, query) {
-  const strongHits = hits.filter(h => h.score >= 85)
-  const hasHits    = hits.length > 0
-  const isHit      = strongHits.length > 0
+// ── Context bar ────────────────────────────────────────────────────
+function updateContextBar(query,type,country,ms,total){
+  const typeLabels={all:'All',Person:'Individual',Organization:'Entity',Vessel:'Vessel',Airplane:'Aircraft',Crypto:'Crypto'}
+  document.getElementById('contextBar').innerHTML=`
+    <div class="ctx-item"><span class="ctx-label">Query</span><span class="ctx-value">${query}</span></div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item"><span class="ctx-label">Type</span><span class="ctx-value">${typeLabels[type]||type}</span></div>
+    ${country?`<div class="ctx-divider"></div><div class="ctx-item"><span class="ctx-label">Country</span><span class="ctx-value">${country}</span></div>`:''}
+    <div class="ctx-divider"></div>
+    <div class="ctx-item"><span class="ctx-label">Time</span><span class="ctx-value">${ms}ms</span></div>
+    <div class="ctx-divider"></div>
+    <div class="ctx-item"><span class="ctx-label">Matches</span><span class="ctx-value">${total}</span></div>`
+}
 
-  let bc, bi, bt, bd
-  if (!hasHits) {
-    bc='clear'; bi='✓'
-    bt='No sanctions match found'
-    bd=`"${query}" returned no results in the OFAC SDN database. Record appears clear.`
-  } else if (isHit) {
-    bc='hit'; bi='⚑'
-    bt=`${strongHits.length} high-confidence match${strongHits.length>1?'es':''} found`
-    bd='Immediate review required. Do not proceed without compliance officer verification.'
+// ── Render results ─────────────────────────────────────────────────
+function renderResults(hits,query){
+  const high=hits.filter(h=>h.risk==='HIGH')
+  const med=hits.filter(h=>h.risk==='MEDIUM')
+  const low=hits.filter(h=>h.risk==='LOW')
+  const hasHits=hits.length>0
+
+  let banner=''
+  if(!hasHits){
+    banner=`<div class="summary-banner clear"><div class="banner-icon">✓</div><div><div class="banner-title">No sanctions match found</div><div class="banner-desc">"${query}" returned no results above the minimum score threshold. Record appears clear.</div></div></div>`
+  } else if(high.length){
+    banner=`<div class="summary-banner hit"><div class="banner-icon">⚑</div><div><div class="banner-title">${high.length} high-confidence match${high.length>1?'es':''} found</div><div class="banner-desc">Immediate review required. Do not proceed without compliance officer verification.</div></div></div>`
   } else {
-    bc='partial'; bi='◉'
-    bt=`${hits.length} potential match${hits.length>1?'es':''} — review recommended`
-    bd='Low-confidence matches found. Further due diligence recommended.'
+    banner=`<div class="summary-banner partial"><div class="banner-icon">◉</div><div><div class="banner-title">${hits.length} potential match${hits.length>1?'es':''} — review recommended</div><div class="banner-desc">Low to medium confidence matches found. Further due diligence recommended.</div></div></div>`
   }
 
-  let cards = ''
-  hits.forEach((h, i) => {
-    const r    = h.row
-    const score= h.score
-    const name = r.name || query
-    const type = (r.type || 'other').toLowerCase()
-    const sc   = score >= 85 ? 's-high' : score >= 70 ? 's-med' : 's-low'
-    const slb  = score >= 85 ? '● High'  : score >= 70 ? '◐ Med'  : '○ Low'
-    const tc   = ['person','organization','vessel','airplane'].includes(type) ? 't-'+type : 't-other'
-    const tl   = type.charAt(0).toUpperCase() + type.slice(1)
-    const aliasArr   = (r.aliases   || []).slice(0,12)
-    const programArr = (r.programs  || []).slice(0,8)
-    const countryArr = (r.countries || []).slice(0,5)
+  let groups=''
+  if(high.length)groups+=renderGroup('High Confidence','high',high)
+  if(med.length) groups+=renderGroup('Medium Confidence','medium',med)
+  if(low.length) groups+=renderGroup('Low Confidence','low',low)
 
-    cards += `
-      <div class="match-card">
-        <div class="mch" onclick="tog(${i})">
-          <div class="match-name">${name}</div>
-          <span class="badge ${tc}">${tl}</span>
-          <span class="score-pill ${sc}">${slb} ${score}%</span>
-          <span class="arrow" id="ea${i}">▾</span>
-        </div>
-        <div class="mbody" id="mb${i}">
-          <div class="dgrid">
-            ${r.id        ? `<div><div class="dk">SDN ID</div><div class="dv" style="font-family:var(--mono);font-size:11px">${r.id}</div></div>` : ''}
-            ${r.dob       ? `<div><div class="dk">Date of birth</div><div class="dv">${r.dob}</div></div>` : ''}
-            ${countryArr.length ? `<div><div class="dk">Countries</div><div class="dv">${countryArr.join(', ')}</div></div>` : ''}
-            <div><div class="dk">Match score</div><div class="dv" style="font-family:var(--mono)">${score}%</div></div>
-            <div><div class="dk">Matched on</div><div class="dv">${h.matchedOn}</div></div>
-          </div>
-          ${aliasArr.length ? `
-            <div style="margin-top:12px">
-              <div class="dk">Aliases / AKAs</div>
-              <div class="tag-row">${aliasArr.map(a=>`<span class="atag">${a}</span>`).join('')}</div>
-            </div>` : ''}
-          ${programArr.length ? `
-            <div style="margin-top:10px">
-              <div class="dk">Programs / topics</div>
-              <div class="tag-row">${programArr.map(p=>`<span class="ptag">${p}</span>`).join('')}</div>
-            </div>` : ''}
-        </div>
-      </div>`
-  })
+  document.getElementById('resultsArea').innerHTML=banner+groups+
+    (!hasHits?`<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px">No records found in OFAC SDN database above score threshold</div>`:'')
+}
 
-  document.getElementById('results').innerHTML = `
-    <div class="result-header">
-      <span class="result-title">Screening results</span>
-      <span class="result-meta">${hits.length} match${hits.length!==1?'es':''} · "${query}"</span>
+function renderGroup(title,cls,hits){
+  return `<div class="result-group">
+    <div class="group-header ${cls}">
+      <span class="group-title">${title}</span>
+      <span class="group-count">${hits.length}</span>
     </div>
-    <div class="summary-banner ${bc}">
-      <div class="banner-icon">${bi}</div>
-      <div>
-        <div class="banner-title">${bt}</div>
-        <div class="banner-desc">${bd}</div>
+    ${hits.map((h,i)=>renderCard(h,cls+i)).join('')}
+  </div>`
+}
+
+function renderCard(h,uid){
+  const r=h.row
+  const type=(r.type||'other').toLowerCase()
+  const tc=['person','organization','vessel','airplane'].includes(type)?'t-'+type:'t-other'
+  const tl=type.charAt(0).toUpperCase()+type.slice(1)
+  const barCls=h.risk==='HIGH'?'high':h.risk==='MEDIUM'?'medium':'low'
+  const countries=(r.countries||[]).map(countryName).slice(0,3).join(', ')||'—'
+  const aliases=(r.aliases||[]).slice(0,8)
+  const programs=(r.programs||[]).slice(0,5)
+  const negReasons=h.reasons.filter(r=>r.includes('mismatch'))
+  const posReasons=h.reasons.filter(r=>!r.includes('mismatch')).slice(0,6)
+
+  return `<div class="result-card" id="card_${uid}">
+    <div class="card-main">
+      <div class="card-top">
+        <div>
+          <div class="card-name">${r.name||'—'}</div>
+          ${r.id?`<div class="card-id">SDN ID: ${r.id}</div>`:''}
+        </div>
+        <div class="card-badges">
+          <span class="risk-badge ${h.risk}">${h.risk}</span>
+          <span class="type-badge ${tc}">${tl}</span>
+        </div>
+      </div>
+
+      <div class="conf-row">
+        <div class="conf-bar-wrap">
+          <div class="conf-bar-fill ${barCls}" style="width:${h.score}%"></div>
+        </div>
+        <span class="conf-score ${barCls}">${h.score}%</span>
+      </div>
+
+      <div class="card-meta">
+        <div class="meta-item"><span class="meta-label">Countries:</span><span class="meta-value">${countries}</span></div>
+        ${r.dob?`<div class="meta-item"><span class="meta-label">DOB:</span><span class="meta-value">${r.dob}</span></div>`:''}
+        ${programs.length?`<div class="meta-item"><span class="meta-label">Programs:</span><span class="meta-value">${programs.join(', ')}</span></div>`:''}
+      </div>
+
+      <div class="card-actions">
+        <button class="action-btn detail" onclick="toggleExplain('${uid}')">Explain match</button>
+        <button class="action-btn fp" id="fp_${uid}" onclick="toggleFP('${uid}')">Mark false positive</button>
+        <button class="action-btn case" onclick="createCase('${uid}')">Create case</button>
+        <span class="case-id-display" id="caseid_${uid}"></span>
       </div>
     </div>
-    ${cards}
-    ${!hasHits ? `<div style="text-align:center;padding:36px 0;color:var(--text3);font-family:var(--mono);font-size:12px">◎ No records found in OFAC SDN database</div>` : ''}`
+
+    <div class="explain-section" id="explain_${uid}">
+      <div class="explain-title">Match explanation</div>
+      <div class="explain-grid">
+        <div class="explain-stat">
+          <div class="explain-stat-num">${h.nameScore}%</div>
+          <div class="explain-stat-label">Name similarity</div>
+        </div>
+        <div class="explain-stat">
+          <div class="explain-stat-num">${h.aliasScore}%</div>
+          <div class="explain-stat-label">Alias contribution</div>
+        </div>
+        <div class="explain-stat">
+          <div class="explain-stat-num">${h.contextScore}%</div>
+          <div class="explain-stat-label">Context score</div>
+        </div>
+      </div>
+      <div class="reasons-list">
+        ${posReasons.map(r=>`<span class="reason-chip">${r}</span>`).join('')}
+        ${negReasons.map(r=>`<span class="reason-chip negative">${r}</span>`).join('')}
+      </div>
+      ${aliases.length?`
+      <div class="tags-section" style="margin-top:10px">
+        <div class="tags-label">Aliases / AKAs</div>
+        <div class="tags-row">${aliases.map(a=>`<span class="alias-tag">${a}</span>`).join('')}</div>
+      </div>`:''}
+    </div>
+  </div>`
 }
 
-function tog(i) {
-  document.getElementById('mb'+i).classList.toggle('open')
-  document.getElementById('ea'+i).classList.toggle('open')
+// ── Actions ────────────────────────────────────────────────────────
+function toggleExplain(uid){
+  document.getElementById('explain_'+uid).classList.toggle('open')
 }
 
-function showError(msg) {
-  document.getElementById('results').innerHTML = `<div class="error-box">⚠ ${msg}</div>`
+function toggleFP(uid){
+  const btn=document.getElementById('fp_'+uid)
+  const card=document.getElementById('card_'+uid)
+  if(btn.classList.contains('active')){
+    btn.classList.remove('active')
+    btn.textContent='Mark false positive'
+    card.classList.remove('flagged')
+  } else {
+    btn.classList.add('active')
+    btn.textContent='✓ Marked as false positive'
+    card.classList.add('flagged')
+  }
+}
+
+function createCase(uid){
+  const el=document.getElementById('caseid_'+uid)
+  if(el.classList.contains('show')){el.classList.remove('show');el.innerHTML='';return}
+  const id='CASE-2026-'+String(++caseCounter).padStart(6,'0')
+  el.innerHTML=`📋 ${id}`
+  el.classList.add('show')
+}
+
+// ── Search history ─────────────────────────────────────────────────
+function loadHistory(){
+  try{searchHistory=JSON.parse(localStorage.getItem('sc_history')||'[]')}catch(e){searchHistory=[]}
+  renderHistory()
+}
+
+function addHistory(query,type,count){
+  const typeLabels={all:'All',Person:'Individual',Organization:'Entity',Vessel:'Vessel',Airplane:'Aircraft',Crypto:'Crypto'}
+  searchHistory.unshift({query,type:typeLabels[type]||type,count,ts:Date.now()})
+  searchHistory=searchHistory.slice(0,8)
+  try{localStorage.setItem('sc_history',JSON.stringify(searchHistory))}catch(e){}
+  renderHistory()
+}
+
+function renderHistory(){
+  const list=document.getElementById('historyList')
+  if(!searchHistory.length){list.innerHTML='<div class="history-empty">No recent searches</div>';return}
+  list.innerHTML=searchHistory.map(h=>`
+    <div class="history-item" onclick="rerunSearch('${h.query.replace(/'/g,"\\'")}')">
+      <span class="history-icon">↺</span>
+      <span class="history-text">${h.query}</span>
+      <span class="history-type">${h.type} · ${h.count}</span>
+    </div>`).join('')
+}
+
+function rerunSearch(query){
+  const inp=document.getElementById('q_name')||document.getElementById('q_crypto')
+  if(inp){inp.value=query;runSearch()}
+}
+
+// ── Clear ──────────────────────────────────────────────────────────
+function clearAll(){
+  document.querySelectorAll('.field-input').forEach(i=>i.value='')
+  document.getElementById('minScore').value=65
+  document.getElementById('scoreVal').textContent='65%'
+  document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'))
+  document.querySelector('[data-type="all"]').classList.add('active')
+  selectedType='all'
+  renderFields('all')
+  updateChips()
+  document.getElementById('resultsArea').innerHTML=`
+    <div class="empty-state">
+      <div class="empty-icon">⚖</div>
+      <div class="empty-title">Screening Tool</div>
+      <div class="empty-sub">Select a search type, enter details and click Search</div>
+    </div>`
+  document.getElementById('contextBar').innerHTML='<span class="ctx-empty">Run a search to see results</span>'
 }
 </script>
 </body>
