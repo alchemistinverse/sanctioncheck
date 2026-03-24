@@ -337,24 +337,57 @@ function matchEntity(input,entity){
   const iT=tokenize(input.name),tT=tokenize(entity.name)
   if(iN===tN)return{score:100,risk:'HIGH',reasons:['Exact full match'],nameScore:100,aliasScore:0,contextScore:0}
   let total=0,reasons=[],ns=0,as=0,cs=0
+
+  // Variant matching — capped at 70
   const iV=generateVariants(iT),tV=generateVariants(tT)
   let vs=0
-  iV.forEach(iv=>tV.forEach(tv=>{const s=similarity(iv,tv);if(s>92){vs+=25;reasons.push('Strong variant match')}else if(s>80){vs+=15;reasons.push('Fuzzy variant match')}}))
-  ns+=Math.min(vs,50);total+=Math.min(vs,50)
+  iV.forEach(iv=>tV.forEach(tv=>{
+    const s=similarity(iv,tv)
+    if(s>=100){vs+=70;reasons.push('Full name match')}
+    else if(s>90){vs+=50;reasons.push('Strong variant match')}
+    else if(s>80){vs+=30;reasons.push('Fuzzy variant match')}
+  }))
+  ns+=Math.min(vs,70);total+=Math.min(vs,70)
+
+  // Token matching — capped at 30
   let ts=0
-  iT.forEach(iw=>tT.forEach(tw=>{const s=similarity(iw,tw);if(s>92){ts+=12;reasons.push('Token exact: '+iw)}else if(s>80){ts+=7;reasons.push('Token fuzzy: '+iw)};if(soundex(iw)===soundex(tw)&&s<=92){ts+=5;reasons.push('Phonetic match: '+iw)}}))
+  iT.forEach(iw=>tT.forEach(tw=>{
+    const s=similarity(iw,tw)
+    if(s>92){ts+=12;reasons.push('Token exact: '+iw)}
+    else if(s>80){ts+=7;reasons.push('Token fuzzy: '+iw)}
+    if(soundex(iw)===soundex(tw)&&s<=92){ts+=5;reasons.push('Phonetic: '+iw)}
+  }))
   ns+=Math.min(ts,30);total+=Math.min(ts,30)
-  if(entity.type&&entity.type.toLowerCase()==='person'&&iT.length&&tT.length&&iT.length>=tT.length){
+
+  // Last name — only when query has same or more tokens than target
+  if(entity.type&&entity.type.toLowerCase()==='person'&&iT.length>=tT.length){
     const s=similarity(iT[iT.length-1],tT[tT.length-1])
-    if(s>92){total+=20;ns+=20;reasons.push('Last name exact match')}
-    else if(s>80){total+=10;ns+=10;reasons.push('Last name fuzzy match')}
-    else{total-=15;reasons.push('Last name mismatch')}
+    if(s>92){total+=15;ns+=15;reasons.push('Last name exact')}
+    else if(s>80){total+=8;ns+=8;reasons.push('Last name fuzzy')}
+    else{total-=10;reasons.push('Last name mismatch')}
   }
+
+  // Alias scoring — capped at 20
   let al=0
-  ;(entity.aliases||[]).forEach(alias=>{const s=similarity(iN,normalizeInput(alias));if(s>90){al+=20;reasons.push('Alias match: '+alias)}else if(s>80){al+=10;reasons.push('Alias fuzzy: '+alias)}})
+  ;(entity.aliases||[]).forEach(alias=>{
+    const s=similarity(iN,normalizeInput(alias))
+    if(s>90){al+=20;reasons.push('Alias match')}
+    else if(s>80){al+=10;reasons.push('Alias fuzzy')}
+  })
   as=Math.min(al,20);total+=as
-  if(input.dob&&entity.dob){if(input.dob===entity.dob){cs+=40;total+=40;reasons.push('Date of birth match')}else{cs-=20;total-=20;reasons.push('Date of birth mismatch')}}
-  if(input.country){const uc=input.country.toUpperCase();if((entity.countries||[]).some(c=>c.toUpperCase()===uc)){cs+=15;total+=15;reasons.push('Country match')}else if((entity.countries||[]).length)reasons.push('Country mismatch')}
+
+  // Context
+  if(input.dob&&entity.dob){
+    if(input.dob===entity.dob){cs+=40;total+=40;reasons.push('DOB match')}
+    else{cs-=20;total-=20;reasons.push('DOB mismatch')}
+  }
+  if(input.country){
+    const uc=input.country.toUpperCase()
+    if((entity.countries||[]).some(c=>c.toUpperCase().includes(uc)||uc.includes(c.toUpperCase()))){
+      cs+=15;total+=15;reasons.push('Country match')
+    }
+  }
+
   total=Math.max(0,Math.min(100,total))
   const risk=total>=85?'HIGH':total>=70?'MEDIUM':'LOW'
   return{score:Math.round(total),risk,reasons,nameScore:Math.min(100,Math.round(ns)),aliasScore:Math.min(100,Math.round(as)),contextScore:Math.min(100,Math.round(Math.abs(cs)))}
