@@ -176,6 +176,24 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
 .tags-row{display:flex;flex-wrap:wrap;gap:4px;}
 .alias-tag{font-size:10px;padding:2px 6px;border-radius:3px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-family:var(--mono);}
 .prog-tag{font-size:10px;padding:2px 6px;border-radius:3px;background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);font-family:var(--mono);}
+.card-position{font-size:11px;color:var(--text2);margin-top:3px;font-style:italic;}
+.sanction-reasons{display:flex;flex-wrap:wrap;gap:4px;margin:8px 0 4px;}
+.sr-tag{font-size:11px;padding:3px 8px;border-radius:4px;font-weight:500;}
+.sr-terror{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;}
+.sr-finance{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+.sr-drugs{background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff;}
+.sr-corruption{background:#fffbeb;color:#b45309;border:1px solid #fde68a;}
+.sr-sanctions{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;}
+.sr-weapons{background:#fef2f2;color:#991b1b;border:1px solid #fecaca;}
+.sr-other{background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;}
+.comparison-panel{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;margin-bottom:10px;}
+.cmp-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.cmp-row{display:grid;grid-template-columns:90px 1fr 20px 1fr;gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid var(--border);}
+.cmp-row:last-child{border-bottom:none;}
+.cmp-field{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;}
+.cmp-submitted{font-size:12px;color:var(--text2);}
+.cmp-matched{font-size:12px;color:var(--text);font-weight:600;}
+.cmp-icon{font-size:13px;color:var(--green);text-align:center;}
 @media(max-width:768px){
   .app{grid-template-columns:1fr;}
   .left-panel{border-right:none;border-bottom:1px solid var(--border);}
@@ -247,6 +265,11 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
 <script>
 const COUNTRIES={AF:'Afghanistan',AL:'Albania',DZ:'Algeria',AO:'Angola',AR:'Argentina',AM:'Armenia',AZ:'Azerbaijan',BH:'Bahrain',BY:'Belarus',BA:'Bosnia',BR:'Brazil',KH:'Cambodia',CM:'Cameroon',CF:'Central African Rep.',CN:'China',CO:'Colombia',CD:'Congo (DRC)',CU:'Cuba',EG:'Egypt',ER:'Eritrea',ET:'Ethiopia',GE:'Georgia',GH:'Ghana',GN:'Guinea',HT:'Haiti',HK:'Hong Kong',IN:'India',ID:'Indonesia',IR:'Iran',IQ:'Iraq',KZ:'Kazakhstan',KE:'Kenya',KP:'North Korea',KW:'Kuwait',KG:'Kyrgyzstan',LB:'Lebanon',LR:'Liberia',LY:'Libya',ML:'Mali',MR:'Mauritania',MX:'Mexico',MD:'Moldova',MN:'Mongolia',MA:'Morocco',MZ:'Mozambique',MM:'Myanmar',NA:'Namibia',NI:'Nicaragua',NE:'Niger',NG:'Nigeria',PK:'Pakistan',PA:'Panama',PY:'Paraguay',PE:'Peru',PH:'Philippines',RU:'Russia',RW:'Rwanda',SA:'Saudi Arabia',SN:'Senegal',RS:'Serbia',SL:'Sierra Leone',SO:'Somalia',ZA:'South Africa',SS:'South Sudan',SD:'Sudan',SY:'Syria',TJ:'Tajikistan',TZ:'Tanzania',TH:'Thailand',TG:'Togo',TN:'Tunisia',TM:'Turkmenistan',UA:'Ukraine',AE:'United Arab Emirates',UG:'Uganda',UZ:'Uzbekistan',VE:'Venezuela',VN:'Vietnam',YE:'Yemen',ZW:'Zimbabwe',US:'United States',GB:'United Kingdom',FR:'France',DE:'Germany',IT:'Italy',ES:'Spain',JP:'Japan',KR:'South Korea'}
 function countryName(c){return COUNTRIES[c.toUpperCase()]||c||'—'}
+
+const PROGRAM_MAP={'VENEZUELA':'Venezuela Sanctions','CUBA':'Cuba Sanctions','IRAN':'Iran Sanctions','SYRIA':'Syria Sanctions','RUSSIA':'Russia Sanctions','BELARUS':'Belarus Sanctions','DPRK':'North Korea Sanctions','DPRK2':'North Korea Sanctions','MYANMAR':'Myanmar Sanctions','ZIMBABWE':'Zimbabwe Sanctions','SOMALIA':'Somalia Sanctions','SUDAN':'Sudan Sanctions','MALI':'Mali Sanctions','LIBYA':'Libya Sanctions','IRAQ2':'Iraq Sanctions','SDGT':'Global Terrorist','SDNTK':'Narcotics Trafficker','SDNT':'Narcotics Trafficker','FTO':'Foreign Terrorist Org','TCO':'Transnational Criminal Org','CYBER2':'Cyber Sanctions','CYBER3':'Cyber Sanctions','GLOMAG':'Human Rights Abuser','EO13818':'Human Rights/Corruption','NPWMD':'WMD Proliferator','IRAN-CON-ARMS-EO':'Iran Arms Embargo','NICARAGUA':'Nicaragua Sanctions','BALKANS':'Western Balkans','MAGNIT':'Magnitsky Act','FSE':'Foreign Sanctions Evader','CAPTA':'CAPTA List','SSI':'Sectoral Sanctions','CMIC':'Chinese Military Company'}
+const PROGRAM_CAT={'SDGT':'sr-terror','FTO':'sr-terror','TCO':'sr-terror','SDNTK':'sr-drugs','SDNT':'sr-drugs','CYBER2':'sr-sanctions','CYBER3':'sr-sanctions','GLOMAG':'sr-corruption','EO13818':'sr-corruption','MAGNIT':'sr-corruption','NPWMD':'sr-weapons','IRAN-CON-ARMS-EO':'sr-weapons','FSE':'sr-finance','CAPTA':'sr-finance','SSI':'sr-finance'}
+function programLabel(p){return PROGRAM_MAP[p]||PROGRAM_MAP[p.split('-')[0]]||p}
+function programCat(p){return PROGRAM_CAT[p]||'sr-sanctions'}
 
 let sdnData=[],selectedType='all',searchHistory=[],caseCounter=1000
 
@@ -407,7 +430,7 @@ const hasOverlap=rTokens.some(t=>{for(const qt of qTokens){if(t===qt)return true
 const aliasOverlap=(row.aliases||[]).some(a=>normalizeInput(a).split(/\s+/).some(t=>qTokens.has(t)))
 if(!hasOverlap&&!aliasOverlap)continue
       const match=matchEntity(input,row)
-      if(match.score>=minScore)results.push({...match,row})
+      if(match.score>=minScore)results.push({...match,row,queryName:query})
     }
     results.sort((a,b)=>b.score-a.score)
     const elapsed=Math.round(performance.now()-t0)
@@ -453,16 +476,28 @@ function renderCard(h,uid){
   const tc=['person','organization','vessel','airplane'].includes(type)?'t-'+type:'t-other'
   const tl=type.charAt(0).toUpperCase()+type.slice(1)
   const bc=h.risk==='HIGH'?'high':h.risk==='MEDIUM'?'medium':'low'
-  const countries=(r.countries||[]).map(countryName).slice(0,3).join(', ')||'—'
+  const countries=(r.countries||[]).map(countryName).slice(0,4).join(', ')||'—'
   const aliases=(r.aliases||[]).slice(0,8)
-  const programs=(r.programs||[]).slice(0,5)
+  const programs=(r.programs||[]).slice(0,8)
   const posR=h.reasons.filter(x=>!x.includes('mismatch')).slice(0,6)
   const negR=h.reasons.filter(x=>x.includes('mismatch'))
+  // UI-01: Position/Title
+  const position=r.placeOfBirth?'':''  // placeholder — title comes from XML
+  const title=r.title||''
+  // UI-02: Sanction reasons from programs
+  const sanctionReasons=programs.map(p=>`<span class="sr-tag ${programCat(p)}">${programLabel(p)}</span>`).join('')
+  // UI-04: Comparison panel
+  const submittedName=h.input||'—'
+  // UI-05: ID documents
+  const idDocs=(r.idDocuments||[]).slice(0,3)
+  // UI-06: Relationships
+  const rels=(r.relationships||[]).slice(0,3)
   return `<div class="result-card" id="card_${uid}">
     <div class="card-main">
       <div class="card-top">
         <div>
           <div class="card-name">${r.name||'—'}</div>
+          ${title?`<div class="card-position">${title}</div>`:''}
           ${r.id?`<div class="card-id">SDN ID: ${r.id}</div>`:''}
         </div>
         <div class="card-badges">
@@ -474,10 +509,21 @@ function renderCard(h,uid){
         <div class="conf-bar-wrap"><div class="conf-bar-fill ${bc}" style="width:${h.score}%"></div></div>
         <span class="conf-score ${bc}">${h.score}%</span>
       </div>
+      ${sanctionReasons?`<div class="sanction-reasons">${sanctionReasons}</div>`:''}
+      <div class="comparison-panel">
+        <div class="cmp-title">Comparison Data</div>
+        <div class="cmp-row">
+          <span class="cmp-field">Name</span>
+          <span class="cmp-submitted">${h.queryName||'—'}</span>
+          <span class="cmp-icon">✓</span>
+          <span class="cmp-matched">${r.name||'—'}</span>
+        </div>
+        ${r.dob?`<div class="cmp-row"><span class="cmp-field">DOB</span><span class="cmp-submitted">—</span><span class="cmp-icon"></span><span class="cmp-matched">${r.dob}</span></div>`:''}
+        ${countries!=='—'?`<div class="cmp-row"><span class="cmp-field">Country</span><span class="cmp-submitted">—</span><span class="cmp-icon"></span><span class="cmp-matched">${countries}</span></div>`:''}
+      </div>
       <div class="card-meta">
-        <div class="meta-item"><span class="meta-label">Countries:</span><span class="meta-value">${countries}</span></div>
-        ${r.dob?`<div class="meta-item"><span class="meta-label">DOB:</span><span class="meta-value">${r.dob}</span></div>`:''}
-        ${programs.length?`<div class="meta-item"><span class="meta-label">Programs:</span><span class="meta-value">${programs.join(', ')}</span></div>`:''}
+        ${idDocs.length?`<div class="meta-item"><span class="meta-label">ID:</span><span class="meta-value">${idDocs.map(d=>d.type+': '+d.number).join(' · ')}</span></div>`:''}
+        ${rels.length?`<div class="meta-item"><span class="meta-label">Links:</span><span class="meta-value">${rels.map(rel=>rel.entity).join(', ')}</span></div>`:''}
       </div>
       <div class="card-actions">
         <button class="action-btn detail" onclick="toggleExplain('${uid}')">Explain match</button>
@@ -498,7 +544,9 @@ function renderCard(h,uid){
         ${negR.map(r=>`<span class="reason-chip negative">${r}</span>`).join('')}
       </div>
       ${aliases.length?`<div class="tags-section"><div class="tags-label">Aliases / AKAs</div><div class="tags-row">${aliases.map(a=>`<span class="alias-tag">${a}</span>`).join('')}</div></div>`:''}
-      ${programs.length?`<div class="tags-section" style="margin-top:8px"><div class="tags-label">Programs</div><div class="tags-row">${programs.map(p=>`<span class="prog-tag">${p}</span>`).join('')}</div></div>`:''}
+      ${rels.length?`<div class="tags-section" style="margin-top:8px"><div class="tags-label">Connections</div><div class="tags-row">${rels.map(rel=>`<span class="alias-tag">${rel.type}: ${rel.entity}</span>`).join('')}</div></div>`:''}
+      ${idDocs.length?`<div class="tags-section" style="margin-top:8px"><div class="tags-label">Identity Documents</div><div class="tags-row">${idDocs.map(d=>`<span class="alias-tag">${d.type}: ${d.number}${d.country?' ('+d.country+')':''}</span>`).join('')}</div></div>`:''}
+      ${programs.length?`<div class="tags-section" style="margin-top:8px"><div class="tags-label">Sanction Programs</div><div class="tags-row">${programs.map(p=>`<span class="prog-tag">${p}</span>`).join('')}</div></div>`:''}
     </div>
   </div>`
 }
