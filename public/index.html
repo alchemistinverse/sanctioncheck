@@ -379,9 +379,10 @@ function runSearch(){
       if(selectedType!=='all'&&selectedType!=='Crypto'){if((row.type||'').toLowerCase()!==selectedType.toLowerCase())continue}
       if(filterCountry&&!(row.countries||[]).some(c=>c.toUpperCase()===filterCountry))continue
       // Pre-filter: quick token overlap
-      const blob = row.searchBlob || (normalizeInput(row.name) + ' ' + (row.aliases||[]).map(a=>normalizeInput(a)).join(' '))
-const hasOverlap = [...qTokens].some(qt => blob.includes(qt))
-if(!hasOverlap)continue
+      const rTokens=normalizeInput(row.name).split(/\s+/).filter(t=>t.length>2)
+const hasOverlap=rTokens.some(t=>{for(const qt of qTokens){if(t===qt)return true;if(t.length>3&&qt.length>3&&(t.startsWith(qt.slice(0,4))||qt.startsWith(t.slice(0,4))))return true}return false})
+const aliasOverlap=(row.aliases||[]).some(a=>normalizeInput(a).split(/\s+/).some(t=>qTokens.has(t)))
+if(!hasOverlap&&!aliasOverlap)continue
       const match=matchEntity(input,row)
       if(match.score>=minScore)results.push({...match,row})
     }
