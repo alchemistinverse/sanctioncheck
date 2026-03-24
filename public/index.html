@@ -344,7 +344,7 @@ function matchEntity(input,entity){
   let ts=0
   iT.forEach(iw=>tT.forEach(tw=>{const s=similarity(iw,tw);if(s>92){ts+=12;reasons.push('Token exact: '+iw)}else if(s>80){ts+=7;reasons.push('Token fuzzy: '+iw)};if(soundex(iw)===soundex(tw)&&s<=92){ts+=5;reasons.push('Phonetic match: '+iw)}}))
   ns+=Math.min(ts,30);total+=Math.min(ts,30)
-  if(entity.type&&entity.type.toLowerCase()==='person'&&iT.length&&tT.length){
+  if(entity.type&&entity.type.toLowerCase()==='person'&&iT.length&&tT.length&&iT.length>=tT.length){
     const s=similarity(iT[iT.length-1],tT[tT.length-1])
     if(s>92){total+=20;ns+=20;reasons.push('Last name exact match')}
     else if(s>80){total+=10;ns+=10;reasons.push('Last name fuzzy match')}
