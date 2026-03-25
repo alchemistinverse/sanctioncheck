@@ -416,81 +416,86 @@ function matchEntity(input,entity){
   const iN=normalizeInput(input.name),tN=normalizeInput(entity.name)
   const iT=tokenize(input.name),tT=tokenize(entity.name)
 
-  // Exact full match
+  // 1. Exact full match
   if(iN===tN)return{score:100,risk:'HIGH',reasons:['Exact full match'],nameScore:100,aliasScore:0,contextScore:0}
 
   let total=0,reasons=[],ns=0,as=0,cs=0
 
-  // Token matching — count how many query tokens match target tokens
-  // This is the core of the scoring — every query token must find a match
-  let matchedTokens=0,ts=0
-  iT.forEach(iw=>{
-    let bestMatch=0
-    tT.forEach(tw=>{
-      const s=similarity(iw,tw)
-      if(s>92){bestMatch=Math.max(bestMatch,12);if(!reasons.includes('Token: '+iw))reasons.push('Token: '+iw)}
-      else if(s>80){bestMatch=Math.max(bestMatch,7);if(!reasons.includes('Token fuzzy: '+iw))reasons.push('Token fuzzy: '+iw)}
-      if(soundex(iw)===soundex(tw)&&s<=92&&s>60){bestMatch=Math.max(bestMatch,5);if(!reasons.includes('Phonetic: '+iw))reasons.push('Phonetic: '+iw)}
-    })
-    if(bestMatch>0)matchedTokens++
-    ts+=bestMatch
-  })
-  ns+=Math.min(ts,40);total+=Math.min(ts,40)
-
-  // Token coverage penalty — how many query tokens matched?
-  // ALL tokens must match for a high score
-  // "Nicolas Maduro" → both must match → high score
-  // "Nicolas" alone → only 1/1 but vs 4-token name → coverage penalty
-  const tokenCoverage=iT.length>0?matchedTokens/iT.length:0
-  const lengthRatio=iT.length/Math.max(tT.length,1)
-
-  // If not all query tokens matched → heavy penalty
-  if(tokenCoverage<1){
-    const penalty=Math.round((1-tokenCoverage)*30)
-    total-=penalty
-    reasons.push(`Only ${matchedTokens}/${iT.length} tokens matched`)
-  }
-
-  // Short query vs long name penalty
-  // "Nicolas" (1) vs "Nicolas Fernando Petro Burgos" (4) = 0.25 ratio → big penalty
-  if(lengthRatio<0.5&&iT.length<tT.length){
-    const penalty=Math.round((0.5-lengthRatio)*40)
-    total-=penalty
-    reasons.push('Short query vs long name (-'+penalty+')')
-  }
-
-  // Variant matching — bonus for full name variants matching
+  // 2. Variant matching (most important — weighted by coverage)
+  // "Nicolas Maduro" vs "Nicolas MADURO MOROS" — NICOLAS MADURO variant scores high
   const iV=generateVariants(iT),tV=generateVariants(tT)
-  let vs=0
+  let bestVariantScore=0
   iV.forEach(iv=>tV.forEach(tv=>{
     const s=similarity(iv,tv)
-    if(s>=100){vs+=40;reasons.push('Full name match')}
-    else if(s>90){vs+=25;reasons.push('Strong variant: '+iv)}
-    else if(s>80){vs+=15;reasons.push('Fuzzy variant: '+iv)}
+    if(s>bestVariantScore)bestVariantScore=s
+    if(s>=100){reasons.push('Full name match')}
+    else if(s>90){reasons.push('Strong variant: '+iv)}
+    else if(s>80){reasons.push('Fuzzy variant: '+iv)}
   }))
-  ns+=Math.min(vs,40);total+=Math.min(vs,40)
+  // Scale variant score by query coverage ratio
+  // "Nicolas Maduro" (2 tokens) vs "Nicolas MADURO MOROS" (3 tokens) = 67% coverage
+  // Full match variant still scores high because NICOLAS MADURO is in the target
+  const coverageRatio=Math.min(iT.length/Math.max(tT.length,1),1)
+  const variantContrib=Math.round(bestVariantScore*coverageRatio)
+  ns+=Math.min(variantContrib,70);total+=Math.min(variantContrib,70)
 
-  // Last name check — only when query has same or more tokens
-  if(entity.type&&entity.type.toLowerCase()==='person'&&iT.length>=tT.length){
-    const s=similarity(iT[iT.length-1],tT[tT.length-1])
-    if(s>92){total+=15;ns+=15;reasons.push('Last name exact')}
-    else if(s>80){total+=8;ns+=8;reasons.push('Last name fuzzy')}
-    else{total-=10;reasons.push('Last name mismatch')}
+  // 3. Token matching — every matched token adds points
+  let ts=0,matchedTokens=0
+  iT.forEach(iw=>{
+    let best=0
+    tT.forEach(tw=>{
+      const s=similarity(iw,tw)
+      if(s>92){best=Math.max(best,15);if(!reasons.find(r=>r.includes(iw)))reasons.push('Token: '+iw)}
+      else if(s>80){best=Math.max(best,8);if(!reasons.find(r=>r.includes(iw)))reasons.push('Token fuzzy: '+iw)}
+      if(soundex(iw)===soundex(tw)&&s<=92&&s>60){best=Math.max(best,5);if(!reasons.find(r=>r.includes('Phonetic')))reasons.push('Phonetic: '+iw)}
+    })
+    if(best>0)matchedTokens++
+    ts+=best
+  })
+  // Token score bonus — proportional to how many tokens matched
+  const tokenMatchRatio=iT.length>0?matchedTokens/iT.length:0
+  const tokenContrib=Math.round(Math.min(ts,30)*tokenMatchRatio)
+  ns+=tokenContrib;total+=tokenContrib
+
+  // 4. Length penalty — short query vs long name
+  // Also penalise when query tokens don't all appear in target
+  if(iT.length<tT.length&&coverageRatio<0.7){
+    const penalty=Math.round((0.7-coverageRatio)*30)
+    total=Math.max(0,total-penalty)
+    reasons.push('Partial name match (-'+penalty+')')
+  }
+  // Extra penalty when target has tokens that suggest it's a different person
+  // e.g. query "Nicolas MADURO MOROS" vs "Nicolas SIERRA SANTANA" — MADURO/MOROS don't match SIERRA/SANTANA
+  if(iT.length>=2){
+    const unmatchedQueryTokens=iT.filter(iw=>!tT.some(tw=>similarity(iw,tw)>80)).length
+    if(unmatchedQueryTokens>0){
+      const mismatchPenalty=unmatchedQueryTokens*12
+      total=Math.max(0,total-mismatchPenalty)
+      if(unmatchedQueryTokens>0)reasons.push(unmatchedQueryTokens+' unmatched token(s) (-'+mismatchPenalty+')')
+    }
   }
 
-  // Alias scoring
+  // 5. Last name check — only when query has same/more tokens
+  if(entity.type&&entity.type.toLowerCase()==='person'&&iT.length>=tT.length){
+    const s=similarity(iT[iT.length-1],tT[tT.length-1])
+    if(s>92){total+=10;ns+=10;reasons.push('Last name exact')}
+    else if(s>80){total+=5;ns+=5;reasons.push('Last name fuzzy')}
+    else{total=Math.max(0,total-8);reasons.push('Last name mismatch')}
+  }
+
+  // 6. Alias scoring
   let al=0
   ;(entity.aliases||[]).forEach(alias=>{
     const aN=normalizeInput(alias)
-    if(aN===iN){al+=20;reasons.push('Alias exact match')}
+    if(aN===iN){al+=25;reasons.push('Exact alias match')}
     else{const s=similarity(iN,aN);if(s>90){al+=20;reasons.push('Alias match')}else if(s>80){al+=10;reasons.push('Alias fuzzy')}}
   })
-  as=Math.min(al,20);total+=as
+  as=Math.min(al,25);total+=as
 
-  // Context scoring
+  // 7. Context scoring
   if(input.dob&&entity.dob){
     if(input.dob===entity.dob){cs+=40;total+=40;reasons.push('DOB match')}
-    else{cs-=20;total-=20;reasons.push('DOB mismatch')}
+    else{cs-=20;total=Math.max(0,total-20);reasons.push('DOB mismatch')}
   }
   if(input.country){
     const uc=input.country.toUpperCase()
