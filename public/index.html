@@ -416,30 +416,26 @@ function matchEntity(input,entity){
   const iN=normalizeInput(input.name),tN=normalizeInput(entity.name)
   const iT=tokenize(input.name),tT=tokenize(entity.name)
 
-  // 1. Exact full match
+  // 1. Exact match
   if(iN===tN)return{score:100,risk:'HIGH',reasons:['Exact full match'],nameScore:100,aliasScore:0,contextScore:0}
 
   let total=0,reasons=[],ns=0,as=0,cs=0
 
-  // 2. Variant matching (most important — weighted by coverage)
-  // "Nicolas Maduro" vs "Nicolas MADURO MOROS" — NICOLAS MADURO variant scores high
+  // 2. Variant matching — core score based on best variant similarity × coverage
   const iV=generateVariants(iT),tV=generateVariants(tT)
   let bestVariantScore=0
   iV.forEach(iv=>tV.forEach(tv=>{
     const s=similarity(iv,tv)
     if(s>bestVariantScore)bestVariantScore=s
-    if(s>=100){reasons.push('Full name match')}
-    else if(s>90){reasons.push('Strong variant: '+iv)}
-    else if(s>80){reasons.push('Fuzzy variant: '+iv)}
+    if(s>=100&&!reasons.includes('Full name match'))reasons.push('Full name match')
+    else if(s>90&&!reasons.includes('Strong variant: '+iv))reasons.push('Strong variant: '+iv)
+    else if(s>80&&!reasons.includes('Fuzzy variant: '+iv))reasons.push('Fuzzy variant: '+iv)
   }))
-  // Scale variant score by query coverage ratio
-  // "Nicolas Maduro" (2 tokens) vs "Nicolas MADURO MOROS" (3 tokens) = 67% coverage
-  // Full match variant still scores high because NICOLAS MADURO is in the target
   const coverageRatio=Math.min(iT.length/Math.max(tT.length,1),1)
   const variantContrib=Math.round(bestVariantScore*coverageRatio)
   ns+=Math.min(variantContrib,70);total+=Math.min(variantContrib,70)
 
-  // 3. Token matching — every matched token adds points
+  // 3. Token matching — bonus points per matched token
   let ts=0,matchedTokens=0
   iT.forEach(iw=>{
     let best=0
@@ -452,30 +448,30 @@ function matchEntity(input,entity){
     if(best>0)matchedTokens++
     ts+=best
   })
-  // Token score bonus — proportional to how many tokens matched
   const tokenMatchRatio=iT.length>0?matchedTokens/iT.length:0
   const tokenContrib=Math.round(Math.min(ts,30)*tokenMatchRatio)
   ns+=tokenContrib;total+=tokenContrib
 
-  // 4. Length penalty — short query vs long name
-  // Also penalise when query tokens don't all appear in target
-  if(iT.length<tT.length&&coverageRatio<0.7){
-    const penalty=Math.round((0.7-coverageRatio)*30)
-    total=Math.max(0,total-penalty)
-    reasons.push('Partial name match (-'+penalty+')')
-  }
-  // Extra penalty when target has tokens that suggest it's a different person
-  // e.g. query "Nicolas MADURO MOROS" vs "Nicolas SIERRA SANTANA" — MADURO/MOROS don't match SIERRA/SANTANA
+  // 4. Unmatched query token penalty
+  // If query tokens don't appear in target → strong penalty
+  // "Nicolas MADURO MOROS" vs "Nicolas SIERRA SANTANA" — MADURO+MOROS don't match
   if(iT.length>=2){
-    const unmatchedQueryTokens=iT.filter(iw=>!tT.some(tw=>similarity(iw,tw)>80)).length
-    if(unmatchedQueryTokens>0){
-      const mismatchPenalty=unmatchedQueryTokens*12
-      total=Math.max(0,total-mismatchPenalty)
-      if(unmatchedQueryTokens>0)reasons.push(unmatchedQueryTokens+' unmatched token(s) (-'+mismatchPenalty+')')
+    const unmatchedTokens=iT.filter(iw=>!tT.some(tw=>similarity(iw,tw)>80)).length
+    if(unmatchedTokens>0){
+      const penalty=unmatchedTokens*15
+      total=Math.max(0,total-penalty)
+      reasons.push(unmatchedTokens+' unmatched token(s) (-'+penalty+')')
     }
   }
 
-  // 5. Last name check — only when query has same/more tokens
+  // 5. Length penalty for short queries vs long names (only when no unmatched tokens)
+  if(iT.length<tT.length&&coverageRatio<0.7&&iT.length>=2){
+    const penalty=Math.round((0.7-coverageRatio)*20)
+    total=Math.max(0,total-penalty)
+    reasons.push('Partial name (-'+penalty+')')
+  }
+
+  // 6. Last name check — only when query has same or more tokens
   if(entity.type&&entity.type.toLowerCase()==='person'&&iT.length>=tT.length){
     const s=similarity(iT[iT.length-1],tT[tT.length-1])
     if(s>92){total+=10;ns+=10;reasons.push('Last name exact')}
@@ -483,7 +479,7 @@ function matchEntity(input,entity){
     else{total=Math.max(0,total-8);reasons.push('Last name mismatch')}
   }
 
-  // 6. Alias scoring
+  // 7. Alias scoring
   let al=0
   ;(entity.aliases||[]).forEach(alias=>{
     const aN=normalizeInput(alias)
@@ -492,7 +488,7 @@ function matchEntity(input,entity){
   })
   as=Math.min(al,25);total+=as
 
-  // 7. Context scoring
+  // 8. Context scoring
   if(input.dob&&entity.dob){
     if(input.dob===entity.dob){cs+=40;total+=40;reasons.push('DOB match')}
     else{cs-=20;total=Math.max(0,total-20);reasons.push('DOB mismatch')}
@@ -648,12 +644,17 @@ function renderCard(h,uid){
       <div class="info-section">
         <div class="info-section-title">Personal Information</div>
         <table class="info-table">
-          <tr><td class="info-key">Full Name</td><td class="info-val">${r.name||'—'}</td></tr>
-          ${aliases.length?`<tr><td class="info-key">Aliases</td><td class="info-val">${aliases.slice(0,5).join('<br>')}</td></tr>`:''}
-          ${address!=='—'?`<tr><td class="info-key">Address</td><td class="info-val">${address}</td></tr>`:''}
+          <tr><td class="info-key">Full Name</td><td class="info-val"><strong>${r.name||'—'}</strong></td></tr>
+          ${r.title?`<tr><td class="info-key">Position</td><td class="info-val" style="color:var(--primary);font-style:italic;font-weight:500">${r.title}</td></tr>`:''}
+          ${r.gender?`<tr><td class="info-key">Gender</td><td class="info-val">${r.gender}</td></tr>`:''}
+          ${r.dob?`<tr><td class="info-key">Date of Birth</td><td class="info-val">${r.dob}</td></tr>`:''}
           ${r.placeOfBirth?`<tr><td class="info-key">Place of Birth</td><td class="info-val">${r.placeOfBirth}</td></tr>`:''}
+          ${r.livingStatus?`<tr><td class="info-key">Living Status</td><td class="info-val">${r.livingStatus}</td></tr>`:''}
+          ${(r.nationalities||[]).length?`<tr><td class="info-key">Nationality</td><td class="info-val">${(r.nationalities).join(', ')}</td></tr>`:''}
+          ${aliases.length?`<tr><td class="info-key">Aliases / AKAs</td><td class="info-val">${aliases.map(a=>`<div style="padding:2px 0;border-bottom:1px solid var(--border)">${a}</div>`).join('')}</td></tr>`:''}
+          ${address!=='—'?`<tr><td class="info-key">Address</td><td class="info-val">${address}</td></tr>`:''}
           ${idDocHtml?`<tr><td class="info-key">ID Numbers</td><td class="info-val">${idDocHtml}</td></tr>`:''}
-          ${rels.length?`<tr><td class="info-key">Connections</td><td class="info-val">${rels.map(rel=>`<div>${rel.type}: <strong>${rel.entity}</strong></div>`).join('')}</td></tr>`:''}
+          ${rels.length?`<tr><td class="info-key">Connections</td><td class="info-val">${rels.map(rel=>`<div style="margin-bottom:4px"><span style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:600;margin-right:4px">${rel.type}:</span><strong>${rel.entity}</strong></div>`).join('')}</td></tr>`:''}
         </table>
       </div>
 
