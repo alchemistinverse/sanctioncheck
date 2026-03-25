@@ -210,10 +210,11 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
 .info-table .info-key{font-weight:600;color:var(--text3);font-size:11px;text-transform:uppercase;width:110px;padding-right:12px;}
 .info-table .info-val{color:var(--text);}
 /* ID doc tags */
-.id-doc-tag{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:5px;background:var(--blue-bg);border:1px solid var(--blue-border);margin:2px;font-size:12px;}
-.id-doc-tag .id-type{font-weight:600;color:var(--blue);font-size:11px;}
-.id-doc-tag .id-num{color:var(--text);font-family:var(--mono);}
-.id-doc-tag .id-country{color:var(--text3);font-size:10px;}
+.id-doc-tag{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:5px;background:var(--blue-bg);border:1px solid var(--blue-border);margin-bottom:4px;font-size:12px;width:fit-content;}
+.id-doc-tag .id-type{font-weight:700;color:var(--blue);font-size:11px;min-width:100px;}
+.id-doc-tag .id-num{color:var(--text);font-family:var(--mono);font-size:13px;}
+.id-doc-tag .id-country{color:var(--text3);font-size:11px;}
+.id-docs-list{display:flex;flex-direction:column;gap:2px;}
 /* Prog tags vertical */
 .prog-tags-vert{display:flex;flex-direction:column;gap:4px;margin-top:4px;}
 .prog-tag-v{font-size:12px;padding:4px 10px;border-radius:4px;background:var(--red-bg);border:1px solid var(--red-border);color:var(--red);font-family:var(--mono);width:fit-content;}
@@ -415,8 +416,22 @@ function generateVariants(t){
 function matchEntity(input,entity){
   const iN=normalizeInput(input.name),tN=normalizeInput(entity.name)
   const iT=tokenize(input.name),tT=tokenize(entity.name)
+
+  // Exact full match
   if(iN===tN)return{score:100,risk:'HIGH',reasons:['Exact full match'],nameScore:100,aliasScore:0,contextScore:0}
-  if(tN.includes(iN))return{score:95,risk:'HIGH',reasons:['Query contained in name'],nameScore:95,aliasScore:0,contextScore:0}
+
+  // Coverage ratio — penalise single-word queries matching long names
+  // "Nicolas" (1 token) vs "Nicolas Fernando Petro Burgos" (4 tokens) = 25% coverage
+  const coverageRatio=iT.length/Math.max(tT.length,1)
+
+  // Contained-in check — only give high score if query covers enough of the target
+  if(tN.includes(iN)){
+    // Scale score by coverage: 1/1=100%, 1/2=70%, 1/3=55%, 1/4=40%
+    const containedScore=Math.round(40+Math.min(coverageRatio,1)*55)
+    if(containedScore>=65)return{score:containedScore,risk:containedScore>=85?'HIGH':'MEDIUM',reasons:['Query contained in name'],nameScore:containedScore,aliasScore:0,contextScore:0}
+    // If coverage too low, fall through to normal scoring
+  }
+
   let total=0,reasons=[],ns=0,as=0,cs=0
   const iV=generateVariants(iT),tV=generateVariants(tT)
   let vs=0
@@ -427,6 +442,7 @@ function matchEntity(input,entity){
     else if(s>80){vs+=30;reasons.push('Fuzzy variant: '+iv)}
   }))
   ns+=Math.min(vs,70);total+=Math.min(vs,70)
+
   let ts=0
   iT.forEach(iw=>tT.forEach(tw=>{
     const s=similarity(iw,tw)
@@ -435,19 +451,32 @@ function matchEntity(input,entity){
     if(soundex(iw)===soundex(tw)&&s<=92){ts+=5;reasons.push('Phonetic: '+iw)}
   }))
   ns+=Math.min(ts,30);total+=Math.min(ts,30)
+
+  // Apply coverage penalty for short queries against long names
+  // A 1-token query vs 4-token name should be penalised
+  if(coverageRatio<0.5&&iT.length<tT.length){
+    const penalty=Math.round((1-coverageRatio)*20)
+    total-=penalty
+    reasons.push('Partial name only (-'+penalty+')')
+  }
+
+  // Last name check — only when query has same or more tokens than target
   if(entity.type&&entity.type.toLowerCase()==='person'&&iT.length>=tT.length){
     const s=similarity(iT[iT.length-1],tT[tT.length-1])
     if(s>92){total+=15;ns+=15;reasons.push('Last name exact')}
     else if(s>80){total+=8;ns+=8;reasons.push('Last name fuzzy')}
     else{total-=10;reasons.push('Last name mismatch')}
   }
+
   let al=0
   ;(entity.aliases||[]).forEach(alias=>{
     const aN=normalizeInput(alias)
-    if(aN.includes(iN)||iN.includes(aN)){al+=20;reasons.push('Alias match')}
+    if(aN===iN){al+=20;reasons.push('Alias exact match')}
+    else if(aN.includes(iN)&&coverageRatio>=0.5){al+=15;reasons.push('Alias contains query')}
     else{const s=similarity(iN,aN);if(s>90){al+=20;reasons.push('Alias match')}else if(s>80){al+=10;reasons.push('Alias fuzzy')}}
   })
   as=Math.min(al,20);total+=as
+
   if(input.dob&&entity.dob){
     if(input.dob===entity.dob){cs+=40;total+=40;reasons.push('DOB match')}
     else{cs-=20;total-=20;reasons.push('DOB mismatch')}
@@ -554,7 +583,7 @@ function renderCard(h,uid){
   const address=addrParts.join(' — ')||'—'
 
   // ID docs display
-  const idDocHtml=idDocs.map(d=>`<span class="id-doc-tag"><span class="id-type">${d.type||'ID'}</span><span class="id-num">${d.number}</span>${d.country?`<span class="id-country">(${d.country})</span>`:''}</span>`).join('')
+  const idDocHtml=idDocs.length?`<div class="id-docs-list">${idDocs.map(d=>`<div class="id-doc-tag"><span class="id-type">${d.type||'ID'}</span><span class="id-num">${d.number}</span>${d.country?`<span class="id-country">(${d.country})</span>`:''}</div>`).join('')}</div>`:'' 
 
   return `<div class="result-card" id="card_${uid}">
     <div class="card-main">
@@ -563,7 +592,6 @@ function renderCard(h,uid){
       <div class="card-top">
         <div style="flex:1">
           <div class="card-name">${r.name||'—'}</div>
-          ${r.title?`<div class="card-position">${r.title}</div>`:''}
           ${ofacNum?`<div class="card-ofac-ref">OFAC Ref: ${ofacNum}</div>`:''}
         </div>
         <div class="card-badges">
@@ -602,12 +630,17 @@ function renderCard(h,uid){
       <div class="info-section">
         <div class="info-section-title">Personal Information</div>
         <table class="info-table">
-          <tr><td class="info-key">Full Name</td><td class="info-val">${r.name||'—'}</td></tr>
-          ${aliases.length?`<tr><td class="info-key">Aliases</td><td class="info-val">${aliases.slice(0,5).join('<br>')}</td></tr>`:''}
-          ${address!=='—'?`<tr><td class="info-key">Address</td><td class="info-val">${address}</td></tr>`:''}
+          <tr><td class="info-key">Full Name</td><td class="info-val"><strong>${r.name||'—'}</strong></td></tr>
+          ${r.title?`<tr><td class="info-key">Position</td><td class="info-val" style="color:var(--primary);font-style:italic">${r.title}</td></tr>`:''}
+          ${r.gender?`<tr><td class="info-key">Gender</td><td class="info-val">${r.gender}</td></tr>`:''}
+          ${r.dob?`<tr><td class="info-key">Date of Birth</td><td class="info-val">${r.dob}</td></tr>`:''}
           ${r.placeOfBirth?`<tr><td class="info-key">Place of Birth</td><td class="info-val">${r.placeOfBirth}</td></tr>`:''}
+          ${r.livingStatus?`<tr><td class="info-key">Status</td><td class="info-val">${r.livingStatus}</td></tr>`:''}
+          ${(r.nationalities||[]).length?`<tr><td class="info-key">Nationality</td><td class="info-val">${(r.nationalities||[]).join(', ')}</td></tr>`:''}
+          ${aliases.length?`<tr><td class="info-key">Aliases / AKAs</td><td class="info-val">${aliases.map(a=>`<div style="padding:1px 0">${a}</div>`).join('')}</td></tr>`:''}
+          ${address!=='—'?`<tr><td class="info-key">Address</td><td class="info-val">${address}</td></tr>`:''}
           ${idDocHtml?`<tr><td class="info-key">ID Numbers</td><td class="info-val">${idDocHtml}</td></tr>`:''}
-          ${rels.length?`<tr><td class="info-key">Connections</td><td class="info-val">${rels.map(rel=>`<div>${rel.type}: <strong>${rel.entity}</strong></div>`).join('')}</td></tr>`:''}
+          ${rels.length?`<tr><td class="info-key">Connections</td><td class="info-val">${rels.map(rel=>`<div style="margin-bottom:3px"><span style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:600">${rel.type}:</span> <strong>${rel.entity}</strong></div>`).join('')}</td></tr>`:''}
         </table>
       </div>
 
