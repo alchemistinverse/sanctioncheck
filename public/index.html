@@ -392,7 +392,50 @@ function normalize(s){return(s||'').toUpperCase().normalize("NFD").replace(/[\u0
 function normalizeArabic(s){return s.replace(/\b(MOHAMED|MOHAMMAD|MUHAMED|MOHAMMED)\b/g,"MUHAMMAD").replace(/\bABD AL\b/g,"ABDUL")}
 function normalizeRussian(s){return s.replace(/\b(\w{5,})(OVA|OV|EVA|EV|INA|IN|SKAYA|SKY)\b/g,"$1")}
 function normalizeInput(n){let s=normalize(n);s=normalizeArabic(s);s=normalizeRussian(s);return s}
+
+// ── Legal entity prefix/suffix stripping ─────────────────────────
+// Strips common legal prefixes AND suffixes from org names
+// Works both ways: strips from query AND from target before comparing
+// "Gazprom LLC" vs "PUBLIC JOINT STOCK COMPANY GAZPROM" → both → "GAZPROM"
+const LEGAL_TOKENS=new Set([
+  // Prefixes (start of name)
+  'PUBLIC','PRIVATE','OPEN','CLOSED','JOINT','STOCK','LIMITED','LIABILITY',
+  'COMPANY','CORPORATION','INCORPORATED','COOPERATIVE','ENTERPRISE','ESTABLISHMENT',
+  'FOUNDATION','ASSOCIATION','ORGANIZATION','ORGANISATION','INSTITUTION','HOLDING',
+  'GROUP','TRUST','FUND','TRADING','INVESTMENT','INTERNATIONAL','NATIONAL',
+  // Common abbreviations
+  'LLC','LTD','INC','CORP','CO','PLC','LP','LLP','BV','NV','SA','AG','GMBH',
+  'SARL','SAS','SRL','SPA','AB','AS','OY','OYJ','KY',
+  // Russian
+  'OOO','OAO','ZAO','PAO','AO','GUP','MUP',
+  // UAE/Gulf
+  'FZE','FZC','FZCO','DMCC','WLL','BSC','KSCP','PJSC','PSC',
+  // Turkish
+  'SIRKETI','ANONIM','KOLLEKTIF','KOMANDIT',
+  // Other
+  'LTDA','LTDA.','SCA','SPRL','BVBA','NV','CV',
+  // Punctuated versions
+  'LTD.','INC.','CO.','CORP.','L.L.C','L.L.C.','S.A.','S.A.S.','C.V.',
+])
+
+function stripLegalTokens(normalized) {
+  // Remove legal tokens from start and end, keep the meaningful core
+  const tokens = normalized.split(' ').filter(Boolean)
+  // Strip from front
+  let start = 0
+  while (start < tokens.length - 1 && LEGAL_TOKENS.has(tokens[start])) start++
+  // Strip from back
+  let end = tokens.length - 1
+  while (end > start && LEGAL_TOKENS.has(tokens[end])) end--
+  return tokens.slice(start, end + 1).join(' ')
+}
+
+function coreOrgName(n) {
+  return stripLegalTokens(normalizeInput(n))
+}
+
 function tokenize(n){return normalizeInput(n).split(/\s+/).filter(Boolean)}
+function tokenizeCore(n){return coreOrgName(n).split(/\s+/).filter(Boolean)}
 function levenshtein(a,b){
   const dp=Array.from({length:b.length+1},(_,j)=>Array.from({length:a.length+1},(_,i)=>j===0?i:i===0?j:0))
   for(let j=1;j<=b.length;j++)for(let i=1;i<=a.length;i++)dp[j][i]=a[i-1]===b[j-1]?dp[j-1][i-1]:1+Math.min(dp[j-1][i-1],dp[j][i-1],dp[j-1][i])
@@ -415,9 +458,26 @@ function generateVariants(t){
 function matchEntity(input,entity){
   const iN=normalizeInput(input.name),tN=normalizeInput(entity.name)
   const iT=tokenize(input.name),tT=tokenize(entity.name)
+  const isOrg=entity.type&&entity.type.toLowerCase()==='organization'
+  const isPerson=entity.type&&entity.type.toLowerCase()==='person'
 
   // 1. Exact match
   if(iN===tN)return{score:100,risk:'HIGH',reasons:['Exact full match'],nameScore:100,aliasScore:0,contextScore:0}
+
+  // 1b. Core name match (legal prefixes/suffixes stripped both sides)
+  // "Gazprom" vs "PUBLIC JOINT STOCK COMPANY GAZPROM" → "GAZPROM" = "GAZPROM"
+  if(isOrg){
+    const iCore=coreOrgName(input.name),tCore=coreOrgName(entity.name)
+    if(iCore&&tCore&&iCore===tCore)
+      return{score:98,risk:'HIGH',reasons:['Exact core name match'],nameScore:98,aliasScore:0,contextScore:0}
+    // Core contained — "Gazprom" core in "GAZPROM NEFT" core
+    if(iCore&&tCore&&iCore.length>3&&tCore.includes(iCore)){
+      const cov=iCore.split(' ').length/Math.max(tCore.split(' ').length,1)
+      const sc=Math.round(45+cov*50)
+      if(sc>=65)return{score:Math.min(sc,95),risk:sc>=85?'HIGH':'MEDIUM',
+        reasons:['Core name contained'],nameScore:Math.min(sc,95),aliasScore:0,contextScore:0}
+    }
+  }
 
   let total=0,reasons=[],ns=0,as=0,cs=0
 
@@ -452,10 +512,10 @@ function matchEntity(input,entity){
   const tokenContrib=Math.round(Math.min(ts,30)*tokenMatchRatio)
   ns+=tokenContrib;total+=tokenContrib
 
-  // 4. Unmatched query token penalty
-  // If query tokens don't appear in target → strong penalty
-  // "Nicolas MADURO MOROS" vs "Nicolas SIERRA SANTANA" — MADURO+MOROS don't match
-  if(iT.length>=2){
+  // 4. Unmatched token penalty — PERSONS ONLY
+  // "Nicolas MADURO MOROS" vs "Nicolas SIERRA SANTANA" — MADURO+MOROS unmatched → penalty
+  // NOT applied to orgs — "Gazprom" alone is a valid org search
+  if(isPerson&&iT.length>=2){
     const unmatchedTokens=iT.filter(iw=>!tT.some(tw=>similarity(iw,tw)>80)).length
     if(unmatchedTokens>0){
       const penalty=unmatchedTokens*15
@@ -464,8 +524,8 @@ function matchEntity(input,entity){
     }
   }
 
-  // 5. Length penalty for short queries vs long names (only when no unmatched tokens)
-  if(iT.length<tT.length&&coverageRatio<0.7&&iT.length>=2){
+  // 5. Length penalty — PERSONS ONLY, multi-token queries
+  if(isPerson&&iT.length<tT.length&&coverageRatio<0.7&&iT.length>=2){
     const penalty=Math.round((0.7-coverageRatio)*20)
     total=Math.max(0,total-penalty)
     reasons.push('Partial name (-'+penalty+')')
@@ -524,8 +584,13 @@ function runSearch(){
       if(selectedType!=='all'&&selectedType!=='Crypto'){if((row.type||'').toLowerCase()!==selectedType.toLowerCase())continue}
       if(filterCountry&&!(row.countries||[]).some(c=>c.toUpperCase()===filterCountry))continue
       // Pre-filter: quick token overlap
-      const rTokens=normalizeInput(row.name).split(/\s+/).filter(t=>t.length>2)
-const hasOverlap=rTokens.some(t=>{for(const qt of qTokens){if(t===qt)return true;if(t.length>3&&qt.length>3&&(t.startsWith(qt.slice(0,4))||qt.startsWith(t.slice(0,4))))return true}return false})
+      // For orgs also check core name (strips legal prefixes)
+      const rName=row.type==='Organization'?coreOrgName(row.name):normalizeInput(row.name)
+      const rTokens=rName.split(/\s+/).filter(t=>t.length>2)
+      const qCoreTokens=row.type==='Organization'
+        ?new Set(coreOrgName(query).split(/\s+/).filter(t=>t.length>2))
+        :qTokens
+const hasOverlap=rTokens.some(t=>{for(const qt of qCoreTokens){if(t===qt)return true;if(t.length>3&&qt.length>3&&(t.startsWith(qt.slice(0,4))||qt.startsWith(t.slice(0,4))))return true}return false})
 const aliasOverlap=(row.aliases||[]).some(a=>normalizeInput(a).split(/\s+/).some(t=>qTokens.has(t)))
 if(!hasOverlap&&!aliasOverlap)continue
       const match=matchEntity(input,row)
