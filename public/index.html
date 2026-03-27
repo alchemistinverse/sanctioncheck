@@ -290,7 +290,19 @@ nav{background:var(--nav);height:52px;display:flex;align-items:center;justify-co
   </div>
 
   <div class="right-panel">
-
+    <div class="disclaimer-banner" id="disclaimerBanner">
+      <strong>ℹ Data Sources:</strong>
+      <div class="disc-lists">
+        <span class="disc-tag">OFAC SDN List</span>
+        <span class="disc-tag">Consolidated List</span>
+        <span class="disc-tag">Sectoral Sanctions (SSI)</span>
+        <span class="disc-tag">NS-Palestinian LC</span>
+        <span class="disc-tag">NS-CMIC List</span>
+        <span class="disc-tag">NS-Menu-Based</span>
+        <span class="disc-tag">CAPTA List</span>
+      </div>
+      <span style="margin-left:auto;color:#3b82f6;cursor:pointer;font-size:10px" onclick="document.getElementById('disclaimerBanner').style.display='none'">✕ dismiss</span>
+    </div>
     <div class="context-bar" id="contextBar">
       <span class="ctx-empty">Run a search to see results</span>
     </div>
@@ -346,9 +358,9 @@ function programCat(p){return PROGRAM_CAT[p]||PROGRAM_CAT[p.split('-')[0]]||'sr-
 let sdnData=[],selectedType='all',searchHistory=[],caseCounter=1000
 
 const FIELDS={
-  all:{basic:[{id:'q_name',label:'Name',ph:'Full name, company or vessel…'}],adv:[{id:'q_city',label:'City',ph:'e.g. Moscow'},{id:'q_state',label:'State / Province',ph:''},{id:'q_country',label:'Country code',ph:'e.g. RU, IR, VE'},{id:'q_idnum',label:'ID Number',ph:'Passport, national ID…'},{id:'q_idtype',label:'ID Type',ph:'e.g. Passport, Cedula'}]},
-  Person:{basic:[{id:'q_name',label:'Full name',ph:'e.g. Nicolas Maduro'}],adv:[{id:'q_dob',label:'Date of birth',ph:'',tp:'date'},{id:'q_pob',label:'Place of birth',ph:'e.g. Caracas, Venezuela'},{id:'q_city',label:'City',ph:'e.g. Caracas'},{id:'q_country',label:'Country code',ph:'e.g. VE'},{id:'q_idnum',label:'Passport / National ID',ph:'e.g. 5892464'},{id:'q_idtype',label:'ID Type',ph:'e.g. Passport, Cedula No.'}]},
-  Organization:{basic:[{id:'q_name',label:'Entity name',ph:'e.g. Al-Rashid Bank'}],adv:[{id:'q_doi',label:'Date of incorporation',ph:'',tp:'date'},{id:'q_city',label:'City',ph:''},{id:'q_state',label:'State / Province',ph:''},{id:'q_country',label:'Country code',ph:'e.g. IQ'},{id:'q_idnum',label:'Business reg. number',ph:''},{id:'q_website',label:'Website',ph:'e.g. example.com'}]},
+  all:{basic:[{id:'q_name',label:'Name',ph:'Full name, company or vessel…'}],adv:[{id:'q_city',label:'City',ph:'e.g. Moscow'},{id:'q_state',label:'State / Province',ph:''},{id:'q_country',label:'Country code',ph:'e.g. RU, IR, VE'},{id:'q_id',label:'ID Number',ph:'Any ID number'}]},
+  Person:{basic:[{id:'q_name',label:'Full name',ph:'e.g. Nicolas Maduro'}],adv:[{id:'q_dob',label:'Date of birth',ph:'',tp:'date'},{id:'q_city',label:'City',ph:'e.g. Caracas'},{id:'q_state',label:'State / Province',ph:''},{id:'q_country',label:'Country code',ph:'e.g. VE'},{id:'q_id',label:'Passport / National ID',ph:''}]},
+  Organization:{basic:[{id:'q_name',label:'Entity name',ph:'e.g. Al-Rashid Bank'}],adv:[{id:'q_doi',label:'Date of incorporation',ph:'',tp:'date'},{id:'q_city',label:'City',ph:''},{id:'q_state',label:'State / Province',ph:''},{id:'q_country',label:'Country code',ph:'e.g. IQ'},{id:'q_id',label:'Business reg. number',ph:''},{id:'q_website',label:'Website',ph:'e.g. example.com'}]},
   Vessel:{basic:[{id:'q_name',label:'Vessel name',ph:'e.g. ARCTIC SEA'},{id:'q_imo',label:'IMO Number',ph:'e.g. IMO 1234567'}],adv:[{id:'q_mmsi',label:'MMSI',ph:'Maritime Mobile Service Identity'},{id:'q_hull',label:'Hull ID Number',ph:''}]},
   Airplane:{basic:[{id:'q_name',label:'Aircraft name',ph:'e.g. Boeing 737'},{id:'q_icao',label:'ICAO Identifier',ph:'e.g. N123AB'}],adv:[{id:'q_modes',label:'Mode S Transponder',ph:''},{id:'q_tail',label:'Tail Number',ph:'e.g. N-12345'}]},
   Crypto:{basic:[{id:'q_crypto',label:'Wallet address',ph:'BTC / ETH / other address…'}],adv:[]}
@@ -362,14 +374,6 @@ function renderFields(type){
   })
   if(cfg.adv.length){
     h+=`<button class="adv-toggle" onclick="toggleAdv(this)"><span>Advanced search</span><span class="adv-arrow" id="advArrow">▾</span></button><div class="adv-fields" id="advFields">`
-    // UI-11: Gender radio buttons for Person type
-    if(type==='Person'||type==='all'){
-      h+=`<div class="field-group"><label class="field-label">Gender</label><div style="display:flex;gap:12px;margin-top:4px">
-        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);cursor:pointer"><input type="radio" name="q_gender" value="" id="q_gender_any" checked style="accent-color:var(--primary)"> Any</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);cursor:pointer"><input type="radio" name="q_gender" value="Male" id="q_gender_m" style="accent-color:var(--primary)"> Male</label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2);cursor:pointer"><input type="radio" name="q_gender" value="Female" id="q_gender_f" style="accent-color:var(--primary)"> Female</label>
-      </div></div>`
-    }
     cfg.adv.forEach(f=>{
       h+=`<div class="field-group"><label class="field-label" for="${f.id}">${f.label}</label><input class="field-input" id="${f.id}" type="${f.tp||'text'}" placeholder="${f.ph}" autocomplete="off"/></div>`
     })
@@ -415,7 +419,18 @@ function normalize(s){return(s||'').toUpperCase().normalize("NFD").replace(/[\u0
 function normalizeArabic(s){return s.replace(/\b(MOHAMED|MOHAMMAD|MUHAMED|MOHAMMED)\b/g,"MUHAMMAD").replace(/\bABD AL\b/g,"ABDUL")}
 function normalizeRussian(s){return s.replace(/\b(\w{5,})(OVA|OV|EVA|EV|INA|IN|SKAYA|SKY)\b/g,"$1")}
 function normalizeInput(n){let s=normalize(n);s=normalizeArabic(s);s=normalizeRussian(s);return s}
+
+const LEGAL_TOKENS=new Set(['PUBLIC','PRIVATE','OPEN','CLOSED','JOINT','STOCK','LIMITED','LIABILITY','COMPANY','CORPORATION','INCORPORATED','COOPERATIVE','ENTERPRISE','ESTABLISHMENT','FOUNDATION','ASSOCIATION','ORGANIZATION','ORGANISATION','INSTITUTION','HOLDING','GROUP','TRUST','FUND','TRADING','INVESTMENT','INTERNATIONAL','NATIONAL','LLC','LTD','INC','CORP','CO','PLC','LP','LLP','BV','NV','SA','AG','GMBH','SARL','SAS','SRL','SPA','AB','AS','OY','OYJ','KY','OOO','OAO','ZAO','PAO','AO','GUP','MUP','FZE','FZC','FZCO','DMCC','WLL','BSC','KSCP','PJSC','PSC','SIRKETI','ANONIM','KOLLEKTIF','LTDA','SCA','SPRL','BVBA'])
+
+function stripLegalTokens(n){
+  const tokens=normalizeInput(n).split(' ').filter(Boolean)
+  let s=0; while(s<tokens.length-1&&LEGAL_TOKENS.has(tokens[s]))s++
+  let e=tokens.length-1; while(e>s&&LEGAL_TOKENS.has(tokens[e]))e--
+  return tokens.slice(s,e+1).join(' ')
+}
+function coreOrgName(n){return stripLegalTokens(n)}
 function tokenize(n){return normalizeInput(n).split(/\s+/).filter(Boolean)}
+function tokenizeCore(n){return coreOrgName(n).split(/\s+/).filter(Boolean)}
 function levenshtein(a,b){
   const dp=Array.from({length:b.length+1},(_,j)=>Array.from({length:a.length+1},(_,i)=>j===0?i:i===0?j:0))
   for(let j=1;j<=b.length;j++)for(let i=1;i<=a.length;i++)dp[j][i]=a[i-1]===b[j-1]?dp[j-1][i-1]:1+Math.min(dp[j-1][i-1],dp[j][i-1],dp[j-1][i])
@@ -438,9 +453,31 @@ function generateVariants(t){
 function matchEntity(input,entity){
   const iN=normalizeInput(input.name),tN=normalizeInput(entity.name)
   const iT=tokenize(input.name),tT=tokenize(entity.name)
+  const isOrg=entity.type&&entity.type.toLowerCase()==='organization'
+  const isPerson=entity.type&&entity.type.toLowerCase()==='person'
 
   // 1. Exact match
   if(iN===tN)return{score:100,risk:'HIGH',reasons:['Exact full match'],nameScore:100,aliasScore:0,contextScore:0}
+
+  // 1b. Core org name match (strip legal prefixes both sides)
+  // "Gazprom" → "GAZPROM" vs "PUBLIC JOINT STOCK COMPANY GAZPROM" → "GAZPROM" = exact!
+  if(isOrg){
+    const iCore=coreOrgName(input.name),tCore=coreOrgName(entity.name)
+    if(iCore&&tCore&&iCore===tCore)
+      return{score:98,risk:'HIGH',reasons:['Exact core name match'],nameScore:98,aliasScore:0,contextScore:0}
+    if(iCore&&tCore&&iCore.length>3&&tCore.includes(iCore)){
+      const cov=iCore.split(' ').length/Math.max(tCore.split(' ').length,1)
+      const sc=Math.min(Math.round(50+cov*45),95)
+      if(sc>=50)return{score:sc,risk:sc>=85?'HIGH':sc>=70?'MEDIUM':'LOW',
+        reasons:['Core name match: '+iCore],nameScore:sc,aliasScore:0,contextScore:0}
+    }
+    // Also check if query core is a PREFIX of target core (Gazprom → Gazprombank)
+    if(iCore&&tCore&&iCore.length>4&&tCore.startsWith(iCore)){
+      const sc=Math.min(Math.round(45+iCore.length/tCore.length*45),90)
+      if(sc>=50)return{score:sc,risk:sc>=85?'HIGH':sc>=70?'MEDIUM':'LOW',
+        reasons:['Name prefix match: '+iCore],nameScore:sc,aliasScore:0,contextScore:0}
+    }
+  }
 
   let total=0,reasons=[],ns=0,as=0,cs=0
 
@@ -475,10 +512,8 @@ function matchEntity(input,entity){
   const tokenContrib=Math.round(Math.min(ts,30)*tokenMatchRatio)
   ns+=tokenContrib;total+=tokenContrib
 
-  // 4. Unmatched query token penalty
-  // If query tokens don't appear in target → strong penalty
-  // "Nicolas MADURO MOROS" vs "Nicolas SIERRA SANTANA" — MADURO+MOROS don't match
-  if(iT.length>=2){
+  // 4. Unmatched token penalty — PERSONS ONLY
+  if(isPerson&&iT.length>=2){
     const unmatchedTokens=iT.filter(iw=>!tT.some(tw=>similarity(iw,tw)>80)).length
     if(unmatchedTokens>0){
       const penalty=unmatchedTokens*15
@@ -487,8 +522,8 @@ function matchEntity(input,entity){
     }
   }
 
-  // 5. Length penalty for short queries vs long names (only when no unmatched tokens)
-  if(iT.length<tT.length&&coverageRatio<0.7&&iT.length>=2){
+  // 5. Length penalty — PERSONS ONLY
+  if(isPerson&&iT.length<tT.length&&coverageRatio<0.7&&iT.length>=2){
     const penalty=Math.round((0.7-coverageRatio)*20)
     total=Math.max(0,total-penalty)
     reasons.push('Partial name (-'+penalty+')')
@@ -522,22 +557,6 @@ function matchEntity(input,entity){
       cs+=15;total+=15;reasons.push('Country match')
     }
   }
-  // UI-11: Gender filter — mismatch reduces score
-  if(input.gender&&entity.gender){
-    if(input.gender.toUpperCase()===entity.gender.toUpperCase()){cs+=10;total+=10;reasons.push('Gender match')}
-    else{cs-=15;total=Math.max(0,total-15);reasons.push('Gender mismatch')}
-  }
-  // UI-12: Place of birth match
-  if(input.pob&&entity.placeOfBirth){
-    const ipob=normalizeInput(input.pob),epob=normalizeInput(entity.placeOfBirth)
-    if(epob.includes(ipob)||ipob.includes(epob)){cs+=15;total+=15;reasons.push('Place of birth match')}
-  }
-  // UI-13: ID number match — very strong signal
-  if(input.idnum&&input.idnum.length>3){
-    const iid=input.idnum.replace(/[^A-Z0-9]/gi,'').toUpperCase()
-    const hasIdMatch=(entity.idDocuments||[]).some(d=>d.number&&d.number.replace(/[^A-Z0-9]/gi,'').toUpperCase()===iid)
-    if(hasIdMatch){cs+=50;total+=50;reasons.push('ID number exact match')}
-  }
 
   total=Math.max(0,Math.min(100,total))
   const risk=total>=85?'HIGH':total>=70?'MEDIUM':'LOW'
@@ -552,10 +571,7 @@ function runSearch(){
   const minScore=parseInt(document.getElementById('minScore').value)
   const filterCountry=getVal('q_country').toUpperCase()
   const filterDob=getVal('q_dob')
-  const filterGender=(document.querySelector('input[name="q_gender"]:checked')||{}).value||''
-  const filterPob=getVal('q_pob')
-  const filterIdNum=getVal('q_idnum')
-  const input={name:query,dob:filterDob||null,country:filterCountry||null,gender:filterGender||null,pob:filterPob||null,idnum:filterIdNum||null}
+  const input={name:query,dob:filterDob||null,country:filterCountry||null}
   document.getElementById('resultsArea').innerHTML=`<div class="loading-state"><div class="spinner"></div><div class="loading-text">Scanning ${sdnData.length.toLocaleString()} SDN records…</div></div>`
   updateChips()
   const t0=performance.now()
@@ -579,11 +595,14 @@ function runSearch(){
     for(const row of sdnData){
       if(selectedType!=='all'&&selectedType!=='Crypto'){if((row.type||'').toLowerCase()!==selectedType.toLowerCase())continue}
       if(filterCountry&&!(row.countries||[]).some(c=>c.toUpperCase()===filterCountry))continue
-      // UI-11: Gender pre-filter
-      if(filterGender&&row.gender&&row.gender.toUpperCase()!==filterGender.toUpperCase())continue
       // Pre-filter: quick token overlap
-      const rTokens=normalizeInput(row.name).split(/\s+/).filter(t=>t.length>2)
-const hasOverlap=rTokens.some(t=>{for(const qt of qTokens){if(t===qt)return true;if(t.length>3&&qt.length>3&&(t.startsWith(qt.slice(0,4))||qt.startsWith(t.slice(0,4))))return true}return false})
+      // For orgs: strip legal tokens and check core name
+      const rCoreName=row.type==='Organization'?coreOrgName(row.name):normalizeInput(row.name)
+      const iCoreName=row.type==='Organization'?coreOrgName(query):normalizeInput(query)
+      const rTokens=rCoreName.split(/\s+/).filter(t=>t.length>2)
+      const iCoreTokens=new Set(iCoreName.split(/\s+/).filter(t=>t.length>2))
+      const allQueryTokens=new Set([...qTokens,...iCoreTokens])
+const hasOverlap=rTokens.some(t=>{for(const qt of allQueryTokens){if(t===qt)return true;if(t.length>3&&qt.length>3&&(t.startsWith(qt.slice(0,4))||qt.startsWith(t.slice(0,4))))return true}return false})
 const aliasOverlap=(row.aliases||[]).some(a=>normalizeInput(a).split(/\s+/).some(t=>qTokens.has(t)))
 if(!hasOverlap&&!aliasOverlap)continue
       // Run match for each query variant, take best score
@@ -832,12 +851,11 @@ async function loadData(){
     // UI-05: Show record count + data freshness date
     document.getElementById('navStatus').textContent=sdnData.length.toLocaleString()+' records · Data: '+ds
     document.getElementById('searchBtn').disabled=false
-    // UI-07: Update footer with actual lists from data
+    // UI-07: Update disclaimer with actual list count
     if(data.lists&&data.lists.length){
-      const footerLists=document.getElementById('footerLists')
-      if(footerLists){
-        footerLists.innerHTML=data.lists.map(l=>`<span style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:3px;padding:2px 7px;font-size:10px;font-weight:500;color:#a78bfa">${l}</span>`).join('')
-      }
+      const tags=data.lists.map(l=>`<span class="disc-tag">${l}</span>`).join('')
+      const discLists=document.querySelector('.disc-lists')
+      if(discLists)discLists.innerHTML=tags
     }
   }catch(e){
     document.getElementById('navDot').className='nav-dot error'
@@ -851,21 +869,5 @@ window.addEventListener('DOMContentLoaded',()=>{
   loadData()
 })
 </script>
-
-<!-- UI-07: Permanent footer with data sources -->
-<div style="background:#1a1a2e;border-top:1px solid rgba(167,139,250,0.2);padding:10px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;bottom:0;z-index:50;">
-  <span style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.06em;flex-shrink:0">Data Sources:</span>
-  <div id="footerLists" style="display:flex;flex-wrap:wrap;gap:4px;flex:1">
-    <span style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:3px;padding:2px 7px;font-size:10px;font-weight:500;color:#a78bfa">OFAC SDN List</span>
-    <span style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:3px;padding:2px 7px;font-size:10px;font-weight:500;color:#a78bfa">Consolidated List</span>
-    <span style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:3px;padding:2px 7px;font-size:10px;font-weight:500;color:#a78bfa">Sectoral Sanctions</span>
-    <span style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:3px;padding:2px 7px;font-size:10px;font-weight:500;color:#a78bfa">NS-Palestinian LC</span>
-    <span style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:3px;padding:2px 7px;font-size:10px;font-weight:500;color:#a78bfa">NS-CMIC</span>
-    <span style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:3px;padding:2px 7px;font-size:10px;font-weight:500;color:#a78bfa">NS-Menu-Based</span>
-    <span style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:3px;padding:2px 7px;font-size:10px;font-weight:500;color:#a78bfa">CAPTA</span>
-  </div>
-  <span style="font-size:10px;color:#6b7280;flex-shrink:0">US Treasury OFAC · Direct source · No license fees</span>
-</div>
-
 </body>
 </html>
