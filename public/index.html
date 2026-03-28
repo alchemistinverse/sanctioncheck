@@ -857,8 +857,8 @@ async function loadData(){
     // UI-07: Update disclaimer with actual list count
     if(data.lists&&data.lists.length){
       const footerLists=document.getElementById('footerLists')
-      if(footerLists)footerLists.innerHTML=data.lists.map(l=>`<span style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:3px;padding:2px 7px;font-size:10px;font-weight:500;color:#a78bfa">${l}</span>`).join('')
-    }
+      if(footerLists){const uniqueLists=[...new Set(data.lists)].slice(0,10);footerLists.innerHTML=uniqueLists.map(l=>`<span style="background:rgba(124,58,237,0.2);border:1px solid rgba(124,58,237,0.4);border-radius:3px;padding:2px 7px;font-size:10px;font-weight:500;color:#a78bfa">${l}</span>`).join('')
+}
   }catch(e){
     document.getElementById('navDot').className='nav-dot error'
     document.getElementById('navStatus').textContent='Failed to load data'
