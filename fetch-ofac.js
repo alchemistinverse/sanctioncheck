@@ -118,6 +118,14 @@ function parseEntity(block, refMap, defaultList) {
     blocks(block, 'sanctionsList').map(listName).filter(Boolean)
   )]
 
+// Entered date — earliest datePublished across all list entries
+  // Last changed — latest datePublished across all list entries
+  const allListDates=getBlocks(block,'sanctionsList')
+    .map(b=>{const m=b.match(/datePublished="([^"]*)"/);return m?m[1]:null})
+    .filter(Boolean).sort()
+  const enteredDate=allListDates[0]||null
+  const lastChanged=allListDates[allListDates.length-1]||null
+
   // Programs
   const programs = [...new Set(allTagText(block, 'sanctionsProgram').filter(Boolean))]
 
@@ -177,12 +185,14 @@ function parseEntity(block, refMap, defaultList) {
       const cName = countryBlock[2].trim() || refMap[countryBlock[1]] || ''
       if (cName) countries.push(cName)
     }
-    for (const ap of blocks(ab, 'addressPart')) {
-      const t = tagText(ap, 'type'), v = tagText(ap, 'value')
-      if (t === 'CITY' && v)            cities.push(v)
-      if (t === 'STATE/PROVINCE' && v)  states.push(v)
+    for(const ap of getBlocks(ab,'addressPart')){
+      const t=tagText(ap,'type'),v=tagText(ap,'value')
+      if(t==='CITY'&&v)cities.push(v)
+      if(t==='STATE/PROVINCE'&&v)states.push(v)
+      if(t==='POSTAL CODE'&&v)addrObj.postal=v
+      if(t==='ADDRESS1'&&v)addrObj.street=v
+      if(t==='ADDRESS2'&&v)addrObj.street2=v
     }
-  }
 
   // Features — DOB, gender, place of birth
   let dob = null, gender = null, placeOfBirth = null
@@ -227,6 +237,17 @@ function parseEntity(block, refMap, defaultList) {
     idDocuments:   idDocuments.length   ? idDocuments             : undefined,
     relationships: relationships.length ? relationships.slice(0,5) : undefined,
   }
+
+//enteredDate
+const record={
+    id:'ofac-'+id,
+    name:primaryName,
+    type,
+    title,
+    enteredDate:enteredDate||undefined,
+    lists:lists.length?lists:[defaultList],
+    lastChanged:lastChanged||undefined,
+
 
   // Remove empty fields
   Object.keys(record).forEach(k => {

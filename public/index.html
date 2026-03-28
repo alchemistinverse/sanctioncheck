@@ -345,7 +345,7 @@ let sdnData=[],selectedType='all',searchHistory=[],caseCounter=1000
 const FIELDS={
   all:{basic:[{id:'q_name',label:'Name',ph:'Full name, company or vessel…'}],adv:[{id:'q_city',label:'City',ph:'e.g. Moscow'},{id:'q_state',label:'State / Province',ph:''},{id:'q_country',label:'Country code',ph:'e.g. RU, IR, VE'},{id:'q_idnum',label:'ID Number',ph:'Passport, national ID…'},{id:'q_idtype',label:'ID Type',ph:'e.g. Passport, Cedula'}]},
   Person:{basic:[{id:'q_name',label:'Full name',ph:'e.g. Nicolas Maduro'}],adv:[{id:'q_dob',label:'Date of birth',ph:'',tp:'date'},{id:'q_pob',label:'Place of birth',ph:'e.g. Caracas, Venezuela'},{id:'q_city',label:'City',ph:'e.g. Caracas'},{id:'q_country',label:'Country code',ph:'e.g. VE'},{id:'q_idnum',label:'Passport / National ID',ph:'e.g. 5892464'},{id:'q_idtype',label:'ID Type',ph:'e.g. Passport, Cedula No.'}]},
-  Organization:{basic:[{id:'q_name',label:'Entity name',ph:'e.g. Al-Rashid Bank'}],adv:[{id:'q_doi',label:'Date of incorporation',ph:'',tp:'date'},{id:'q_city',label:'City',ph:''},{id:'q_state',label:'State / Province',ph:''},{id:'q_country',label:'Country code',ph:'e.g. IQ'},{id:'q_idnum',label:'Business reg. number',ph:''},{id:'q_website',label:'Website',ph:'e.g. example.com'}]},
+  Organization:{basic:[{id:'q_name',label:'Entity name',ph:'e.g. Al-Rashid Bank'}],adv:[{id:'q_doi',label:'Date of incorporation',ph:'',tp:'date'},{id:'q_city',label:'City',ph:''},{id:'q_state',label:'State / Province',ph:''},{id:'q_country',label:'Country code',ph:'e.g. IQ'},{id:'q_idnum',label:'Business ID',ph:''},{id:'q_website',label:'Website',ph:'e.g. example.com'}]},
   Vessel:{basic:[{id:'q_name',label:'Vessel name',ph:'e.g. ARCTIC SEA'},{id:'q_imo',label:'IMO Number',ph:'e.g. IMO 1234567'}],adv:[{id:'q_mmsi',label:'MMSI',ph:'Maritime Mobile Service Identity'},{id:'q_hull',label:'Hull ID Number',ph:''}]},
   Airplane:{basic:[{id:'q_name',label:'Aircraft name',ph:'e.g. Boeing 737'},{id:'q_icao',label:'ICAO Identifier',ph:'e.g. N123AB'}],adv:[{id:'q_modes',label:'Mode S Transponder',ph:''},{id:'q_tail',label:'Tail Number',ph:'e.g. N-12345'}]},
   Crypto:{basic:[{id:'q_crypto',label:'Wallet address',ph:'BTC / ETH / other address…'}],adv:[]}
@@ -737,11 +737,12 @@ function renderCard(h,uid){
           ${r.dob?`<tr><td class="info-key">Date of Birth</td><td class="info-val">${r.dob}</td></tr>`:''}
           ${r.placeOfBirth?`<tr><td class="info-key">Place of Birth</td><td class="info-val">${r.placeOfBirth}</td></tr>`:''}
           ${r.livingStatus?`<tr><td class="info-key">Living Status</td><td class="info-val">${r.livingStatus}</td></tr>`:''}
+          ${r.enteredDate?`<tr><td class="info-key">Listed Since</td><td class="info-val">${r.enteredDate}</td></tr>`:''}
           ${(r.nationalities||[]).length?`<tr><td class="info-key">Nationality</td><td class="info-val">${(r.nationalities).join(', ')}</td></tr>`:''}
           ${aliases.length?`<tr><td class="info-key">Aliases / AKAs</td><td class="info-val">${aliases.map(a=>`<div style="padding:2px 0;border-bottom:1px solid var(--border)">${a}</div>`).join('')}</td></tr>`:''}
           ${address!=='—'?`<tr><td class="info-key">Address</td><td class="info-val">${address}</td></tr>`:''}
           ${idDocHtml?`<tr><td class="info-key">ID Numbers</td><td class="info-val">${idDocHtml}</td></tr>`:''}
-          ${rels.length?`<tr><td class="info-key">Connections</td><td class="info-val">${rels.map(rel=>`<div style="margin-bottom:4px"><span style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:600;margin-right:4px">${rel.type}:</span><strong>${rel.entity}</strong></div>`).join('')}</td></tr>`:''}
+          ${rels.length?`<tr><td class="info-key">Connections</td><td class="info-val">${rels.map(rel=>`<div style="margin-bottom:6px"><span style="font-size:10px;color:var(--text3);text-transform:uppercase;font-weight:600;margin-right:4px">${rel.type}:</span><a href="https://sanctioncheck.vercel.app/?q=${encodeURIComponent(rel.entity)}" target="_blank" style="color:var(--primary);font-weight:600;text-decoration:none;border-bottom:1px dashed var(--primary)" title="Search ${rel.entity} in new tab">${rel.entity} ↗</a></div>`).join('')}</td></tr>`:''}
         </table>
       </div>
 
