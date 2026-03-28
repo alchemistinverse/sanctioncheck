@@ -738,6 +738,7 @@ function renderCard(h,uid){
           ${r.placeOfBirth?`<tr><td class="info-key">Place of Birth</td><td class="info-val">${r.placeOfBirth}</td></tr>`:''}
           ${r.livingStatus?`<tr><td class="info-key">Living Status</td><td class="info-val">${r.livingStatus}</td></tr>`:''}
           ${r.enteredDate?`<tr><td class="info-key">Listed Since</td><td class="info-val">${r.enteredDate}</td></tr>`:''}
+          ${r.lastChanged?`<tr><td class="info-key">Last Updated</td><td class="info-val">${r.lastChanged}</td></tr>`:''}
           ${(r.nationalities||[]).length?`<tr><td class="info-key">Nationality</td><td class="info-val">${(r.nationalities).join(', ')}</td></tr>`:''}
           ${aliases.length?`<tr><td class="info-key">Aliases / AKAs</td><td class="info-val">${aliases.map(a=>`<div style="padding:2px 0;border-bottom:1px solid var(--border)">${a}</div>`).join('')}</td></tr>`:''}
           ${address!=='—'?`<tr><td class="info-key">Address</td><td class="info-val">${address}</td></tr>`:''}
