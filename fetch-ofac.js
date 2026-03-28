@@ -15,7 +15,7 @@ const fs   = require('fs')
 const path = require('path')
 
 const SOURCES = [
-  { file: 'sdn_enhanced.xml',  defaultList: 'SDN List' },
+  { file: 'SDN_ENHANCED.XML',  defaultList: 'SDN List' },
   { file: 'cons_enhanced.xml', defaultList: 'Consolidated List' },
 ]
 const OUT_FILE = path.join('public', 'sdn.json')
@@ -120,7 +120,7 @@ function parseEntity(block, refMap, defaultList) {
 
 // Entered date — earliest datePublished across all list entries
   // Last changed — latest datePublished across all list entries
-  const allListDates=getBlocks(block,'sanctionsList')
+  const allListDates=blocks(block,'sanctionsList')
     .map(b=>{const m=b.match(/datePublished="([^"]*)"/);return m?m[1]:null})
     .filter(Boolean).sort()
   const enteredDate=allListDates[0]||null
@@ -185,15 +185,12 @@ function parseEntity(block, refMap, defaultList) {
       const cName = countryBlock[2].trim() || refMap[countryBlock[1]] || ''
       if (cName) countries.push(cName)
     }
-    for(const ap of getBlocks(ab,'addressPart')){
+    for(const ap of blocks(ab,'addressPart')){
       const t=tagText(ap,'type'),v=tagText(ap,'value')
       if(t==='CITY'&&v)cities.push(v)
       if(t==='STATE/PROVINCE'&&v)states.push(v)
-      if(t==='POSTAL CODE'&&v)addrObj.postal=v
-      if(t==='ADDRESS1'&&v)addrObj.street=v
-      if(t==='ADDRESS2'&&v)addrObj.street2=v
     }
-
+}
   // Features — DOB, gender, place of birth
   let dob = null, gender = null, placeOfBirth = null
   for (const fb of blocks(block, 'feature')) {
@@ -226,6 +223,7 @@ function parseEntity(block, refMap, defaultList) {
     id:            'ofac-' + id,
     name:          primaryName,
     type,
+    title:         tagText(blocks(block,'generalInfo')[0]||'', 'title') || undefined,  
     lists:         lists.length ? lists : [defaultList],
     programs:      [...new Set(programs)],
     aliases:       [...new Set(aliases.filter(a => a && a !== primaryName))],
@@ -236,18 +234,9 @@ function parseEntity(block, refMap, defaultList) {
     placeOfBirth,
     idDocuments:   idDocuments.length   ? idDocuments             : undefined,
     relationships: relationships.length ? relationships.slice(0,5) : undefined,
-  }
-
-//enteredDate
-const record={
-    id:'ofac-'+id,
-    name:primaryName,
-    type,
-    title,
     enteredDate:enteredDate||undefined,
-    lists:lists.length?lists:[defaultList],
     lastChanged:lastChanged||undefined,
-
+  }   
 
   // Remove empty fields
   Object.keys(record).forEach(k => {
@@ -276,7 +265,7 @@ function parseFile(xml, defaultList) {
     try {
       const r = parseEntity(entityBlocks[i], refMap, defaultList)
       if (r) records.push(r); else skipped++
-    } catch(e) { skipped++ }
+    } catch(e) { skipped++; if(skipped<=3)console.log('Parse error:',e.message) }
   }
   console.log(`\r  Progress: 100%`)
   return { records, skipped }
@@ -340,7 +329,7 @@ async function main() {
     updated:  new Date().toISOString(),
     count:    allRecords.length,
     source:   'US Treasury OFAC — sanctionslistservice.ofac.treas.gov',
-    lists:    Object.keys(byList),
+    lists:    [...new Set(Object.keys(byList))],
     byType,
     byList,
     records:  allRecords
